@@ -14,8 +14,6 @@ export default class Level03 extends Phaser.Scene {
     this.load.spritesheet("dragon", "./assets/spriteSheets/dragon.png",{
       frameHeight: 100,
       frameWidth: 121
-    })
-
     });
 
     // Declare variables for center of the scene
@@ -30,8 +28,6 @@ export default class Level03 extends Phaser.Scene {
     //State the objective
 
     //Add timer object
-
-    });
 
     //Add player
 
@@ -50,6 +46,7 @@ export default class Level03 extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     });
+  }
 
   update (time, delta) {
     // Update the scene
@@ -74,6 +71,7 @@ export default class Level03 extends Phaser.Scene {
     if (cursors.up.isDown) {
       this.player.y -= 25;
     } else if (cursors.down.isDown) {
+      this.player.y += 25;
     }
 
-}
+};

@@ -11,7 +11,10 @@ export default class Level01 extends Phaser.Scene {
 
   preload () {
     // Preload assets
-    this.load.image('dragon', './assets/spriteSheets/dragon.png');
+    this.load.spritesheet("dragon", "./assets/spriteSheets/dragon.png",{
+      frameHeight: 100,
+      frameWidth: 121
+    });
     this.load.image('tiles', './assets/tilesets/bad-tileset.png');
     this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01.json');
 
@@ -33,12 +36,48 @@ export default class Level01 extends Phaser.Scene {
 
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    this.anims.create({
+      key: 'walk',
+      frames: this.anims.generateFrameNumbers('dragon', {start: 1, end: 4}),
+      frameRate: 10,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'idle',
+      frames: this.anims.generateFrameNumbers('dragon', {start: 0, end: 0}),
+      frameRate: 10,
+      repeat: -1
+    });
   }
 
 
 
   update (time, delta) {
     // Update the scene
+    //Set speed of player
+    var speed = 10;
+
+    //Create cursor keys and assign events
+    var cursors = this.input.keyboard.createCursorKeys();
+
+    if (cursors.left.isDown) {
+      this.player.x -= speed;
+      this.player.anims.play("walk", true);
+      this.player.flipX = true;
+    } else if (cursors.right.isDown) {
+      this.player.x += speed;
+      this.player.anims.play("walk", true);
+      this.player.flipX = false;
+    } else {
+      this.player.anims.play("idle", true);
+    }
+    if (cursors.up.isDown) {
+      this.player.y -= 25;
+    } else if (cursors.down.isDown) {
+      this.player.y += 25;
+    }
   }
 
   gameOverLose(player, lava) {
