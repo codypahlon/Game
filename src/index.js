@@ -1,14 +1,18 @@
 /*global Phaser, window*/
-import Scene0 from './scenes/Scene0.js';
+import Level01 from './scenes/Level01.js';
+import Level02 from './scenes/Level02.js';
+import Level03 from './scenes/Level03.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import Config from './config/config.js';
 
 class Game extends Phaser.Game {
   constructor () {
     super(Config);
-    this.scene.add('Scene0', Scene0);
+    this.scene.add('Level01', Level01);
+    this.scene.add('Level02', Level02);
+    this.scene.add('Level03', Level03);
     this.scene.add('GameOverScene', GameOverScene);
-    this.scene.start('Scene0');
+    this.scene.start('Level01');
   }
 }
 
