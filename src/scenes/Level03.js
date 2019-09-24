@@ -15,6 +15,8 @@ export default class Level03 extends Phaser.Scene {
       frameHeight: 100,
       frameWidth: 121
     });
+    this.load.image('tiles', './assets/tilesets/bad-tileset.png');
+    this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01.json');
 
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
@@ -22,17 +24,19 @@ export default class Level03 extends Phaser.Scene {
   }
 
   create (data) {
-    //Create the scene
+    const map = this.make.tilemap({key: 'map'});
 
+    const tileset = map.addTilesetImage('bad-tileset', 'tiles');
+    const platforms = map.createStaticLayer('Collision', tileset, 0, 0);
+    const sky = map.createStaticLayer('Background', tileset, 0, 0);
+    sky.setDepth(-10);
+    platforms.setCollisionByExclusion(-1, true);
 
-    //State the objective
+    this.physics.add.collider(this.player, platforms);
 
-    //Add timer object
+    this.cameras.main.startFollow(this.player);
+    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    //Add player
-
-
-    //Add animations for player
     this.anims.create({
       key: 'walk',
       frames: this.anims.generateFrameNumbers('dragon', {start: 1, end: 4}),
@@ -48,9 +52,10 @@ export default class Level03 extends Phaser.Scene {
     });
   }
 
+
+
   update (time, delta) {
     // Update the scene
-
     //Set speed of player
     var speed = 10;
 
@@ -73,5 +78,5 @@ export default class Level03 extends Phaser.Scene {
     } else if (cursors.down.isDown) {
       this.player.y += 25;
     }
-
-};
+  }
+}
