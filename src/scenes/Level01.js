@@ -49,27 +49,14 @@ export default class Level01 extends Phaser.Scene {
     platforms.setCollisionByExclusion(-1, true);
 
     var spikes = this.physics.add.staticGroup();
-    spikes.create(100, 1000, 'spikes');
+    this.createSpikes(2033, 1007, 3, spikes);
+    this.createSpikes(2033 + 32 * 7, 1007, 2, spikes);
+    this.createSpikes(2033 + 32 * 12, 1007, 3, spikes);
+    this.createSpikes(2033 + 32 * 16, 1007, 2, spikes);
+    this.createSpikes(2033 + 32 * 21, 1007, 4, spikes);
+    this.createSpikes(2033 + 32 * 28, 1007, 2, spikes);
 
-    /*
-    var platforms = this.physics.add.staticGroup();
-    platforms.create(100, 1000, 'platform');
-    platforms.setDepth(10);
-    platforms
-      .create(0, 1000, 'platform')
-      .setSize(1000, 1000)
-      .setTintFill(0x654321)
-      .setDisplaySize(1000, 1000);
-    platforms
-      .create(100, 400, 'platform')
-      .setSize(100, 200)
-      .setDisplaySize(100, 200);
-    platforms.create(200, 400, 'platform');
-    */
-
-
-
-    this.player = this.physics.add.sprite(0, 1000, 'dragon');
+    this.player = this.physics.add.sprite(1500, 900, 'dragon');
     this.player.collideWorldBounds = true;
     this.player
       .setSize(100, 80)
@@ -83,21 +70,26 @@ export default class Level01 extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, 5800, 1100);
 
     this.chest = this.physics.add.sprite(1020, 200, 'chest');
-    this.chest2 = this.physics.add.sprite(3120, 530, 'chest');
+    this.chest2 = this.physics.add.sprite(3120, 1000, 'chest');
+    this.chest2
+      .setSize(96, 75)
+      .setDisplaySize(96, 75);
     this.chest.setCollideWorldBounds(true);
     this.chest2.setCollideWorldBounds(true);
 
-    this.viking = this.physics.add.sprite(1500, 200, 'viking');
-    this.viking.setCollideWorldBounds(true);
-    this.viking2 = this.physics.add.sprite(4000, 200, 'viking');
-    this.viking2.setCollideWorldBounds(true);
+    this.viking = this.physics.add.sprite(1420, 1010, 'viking');
+    this.viking.setSize(70, 96);
+    this.viking2 = this.physics.add.sprite(4100, 1010, 'viking');
+    this.viking2.setSize(70, 96);
 
     this.wizard = this.physics.add.sprite(5000, 200, 'wizard');
     this.wizard.setScale(1.2);
     this.wizard.setCollideWorldBounds(true);
 
-
-
+    this.physics.add.overlap(this.player, this.chest, this.checkOverlap);
+    this.physics.add.overlap(this.player, this.chest2, this.checkOverlap);
+    this.physics.add.collider(this.viking, platforms);
+    this.physics.add.collider(this.viking2, platforms);
     this.physics.add.collider(this.player, platforms);
     this.physics.add.collider(this.chest, platforms);
     this.physics.add.collider(this.chest2, platforms);
@@ -119,23 +111,28 @@ export default class Level01 extends Phaser.Scene {
       frameRate: 10,
       repeat: -1,
     });
+
     this.viking.anims.play("vikingwalk", true);
-    this.viking2.anims.play("vikingwalk", true)
+    this.viking2.anims.play("vikingwalk", true);
 
     this.tweens.add({
     targets: this.viking,
-    x: 1000,
-    duration: 5000,
+    x: 1290,
+    duration: 1000,
     ease: 'Linear',
-    loop: -1
+    loop: -1,
+    yoyo: true,
+    flipX: true
     });
 
     this.tweens.add({
     targets: this.viking2,
-    x: 3700,
-    duration: 4000,
+    x: 3850,
+    duration: 1000,
     ease: 'Linear',
-    loop: -1
+    loop: -1,
+    yoyo: true,
+    flipX: true
     });
 
     this.anims.create({
@@ -160,21 +157,6 @@ export default class Level01 extends Phaser.Scene {
     });
     this.wizard.anims.play("wizard", true);
 
-    this.physics.add.overlap(
-      this.player,
-      this.chest,
-      this.checkOverlap,
-      null,
-      this
-    );
-
-    this.physics.add.overlap(
-      this.player,
-      this.chest2,
-      this.checkOverlap,
-      null,
-      this
-    );
   }
 
   update (time, delta) {
@@ -202,19 +184,20 @@ export default class Level01 extends Phaser.Scene {
     }
   };
 
-  checkOverlap(spriteA, spriteB) {
-    var boundsA = spriteA.getBounds();
-    var boundsB = spriteB.getBounds();
-    if (boundsA = boundsB) {
-      this.chest.anims.play("open", true);
-    this.chest.anims.play("open", false);
-    }
-  };
+flipSprite(sprite) {
+  sprite.flipX = !(sprite.flipX);
+  console.log(sprite.flipX);
+};
+checkOverlap(spriteA, spriteB) {
+  spriteB.anims.play("open", true);
+};
 
-stopWalking(player, platforms){
-}
-gameOverLose(player, lava) {
-}
-gameOverWin(player, volcano) {
-}
+createSpikes(x, y, num, spikes) {
+  for (var i = 0; i < num; i++){
+  spikes
+    .create(x + 32 * i, y, 'spikes')
+    .setSize(32, 32)
+    .setDisplaySize(32, 32);
+  }
+};
 }
