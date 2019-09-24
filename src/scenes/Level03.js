@@ -79,13 +79,4 @@ export default class Level31 extends Phaser.Scene {
       this.player.y += 25;
     }
   }
-
-  gameOverLose(player, lava) {
-
-  }
-
-  gameOverWin(player, volcano) {
-
-  }
-
 }
