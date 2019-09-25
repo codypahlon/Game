@@ -453,6 +453,8 @@ shoot(space) {
 hitEnemy (fireball, enemy){
   console.log('hit');
   enemy.health -= 1;
+  this.score += 5;
+  this.scoreText.setText("Score: " + this.score);
   if (enemy.health == 0){
     this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
     this.explosion.setGravity(0, -1000);
