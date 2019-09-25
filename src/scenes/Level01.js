@@ -41,7 +41,10 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 50,
       frameWidth: 50
     });
-
+    this.load.spritesheet('fireball', './assets/spriteSheets/fireball.png', {
+      frameHeight: 25,
+      frameWidth: 16.666
+    })
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
@@ -88,6 +91,19 @@ export default class Level01 extends Phaser.Scene {
     this.player.body.setGravity(0, 10000);
     this.physics.world.setBounds(0, 0, 5800, 1100);
 
+    // Adding in the fireball
+    var fireball, fireballs, enemy, enemyGroup;
+    this.nextFire = 0;
+    this.fireRate = 200;
+    this.speed = 1000;
+
+    this.fireballs = this.physics.add.group({
+      defaultKey: 'fireball'
+    });
+
+    // Add event listener for movement of mouse
+    this.input.keyboard.on('keydown_SPACE', this.shoot, this);
+
     // Add in both of the chests
     this.chest = this.physics.add.sprite(1020, 200, 'chest');
     this.chest2 = this.physics.add.sprite(3120, 1000, 'chest');
@@ -106,12 +122,19 @@ export default class Level01 extends Phaser.Scene {
     // Add in the wizard
     this.wizard = this.physics.add.sprite(5000, 200, 'wizard');
     this.wizard.setScale(1.2);
-    this.wizard.setCollideWorldBounds(true);
 
     // Add in the 3 dwarves
     this.dwarf = this.physics.add.sprite(820, 1010, 'dwarfAxe');
     this.dwarf2 = this.physics.add.sprite(1000, 1010, 'dwarfAxe');
     this.dwarf3 = this.physics.add.sprite(1180, 1010, 'dwarfAxe');
+
+    // Making enemy enemyGroup
+    this.enemyGroup = this.physics.add.group();
+    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2];
+
+    for (var i = 0; i < enemies.length; i++){
+      this.enemyGroup.add(enemies[i]);
+    };
 
     // All of the physics between all the sprites
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this);
@@ -122,7 +145,8 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.collider(this.player, platforms);
     this.physics.add.collider(this.chest, platforms);
     this.physics.add.collider(this.chest2, platforms);
-    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2, this.wizard];
+    this.physics.add.collider(this.wizard, platforms);
+    this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
 
@@ -211,7 +235,33 @@ export default class Level01 extends Phaser.Scene {
   }
 
   update (time, delta) {
+    // Win condition
+    this.fireballs.children.each(
+      function (b) {
+        if (b.active) {
+          this.physics.add.overlap(b, this.wizard, this.gameOverWin, null, this);
+        };
+      }.bind(this)
+    );
+
     // Update the scene
+    this.fireballs.children.each(
+      function (b) {
+        if (b.active) {
+          this.physics.add.overlap(b, this.enemyGroup, this.hitEnemy, null, this);
+          if (b.y < 0) {
+            b.setActive(false);
+          } else if (b.y > this.cameras.main.height) {
+            b.setActive(false);
+          } else if (b.x < 0) {
+            b.setActive(false);
+          } else if (b.x > this.cameras.main.width) {
+            b.setActive(false);
+          }
+        }
+      }.bind(this)
+    );
+
     if (!this.gameOver) {
       if (this.scores == 0) {
         if (this.win){
@@ -280,5 +330,21 @@ createSpikes(x, y, num, spikes) {
   }
 };
 
+shoot(space) {
+  var fireball = this.fireballs.get();
+  fireball.enableBody(true, this.player.x, this.player.y, true, true)
+  if (this.player.flipX == true){
+    var flag = -1;
+  } else {
+    var flag = 1;
+  }
+  fireball.setVelocity(flag * 1000, 0);
+};
+
+hitEnemy (fireball, enemy){
+  console.log('hit');
+  enemy.disableBody(true, true);
+  fireball.disableBody(true, true);
+}
 
 }
