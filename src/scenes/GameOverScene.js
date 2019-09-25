@@ -6,12 +6,12 @@ export default class GameOverScene extends Phaser.Scene {
 
   init (data) {
     // Initialization code goes here
-    if (typeof data.score == 'number'){
-      this.score = [data.score];
+    if (typeof data.time == 'number'){
+      this.time = [data.time];
     } else {
-      this.score = data.score;
-    }
-
+      this.time = data.time;
+    };
+    this.score = data.score;
   }
 
   preload () {
@@ -23,17 +23,18 @@ export default class GameOverScene extends Phaser.Scene {
   create (data) {
     //Create the scene
     var text = this.add.text(this.centerX - 20, this.centerY, 'GAME OVER');
-    var len = this.score.length;
+    var len = this.time.length;
     var centerY = this.centerY;
-    var yourScore = this.score[this.score.length - 1];
-    this.score.sort(function(a,b){return a - b});
+    var yourTime = this.time[this.time.length - 1];
+    this.time.sort(function(a,b){return a - b});
     for (var i = 0; i < 10; i++){
       centerY += 25;
       var j = i + 1;
-      var score = this.add.text(this.centerX - 20, centerY, j.toString() + ': ' + this.score[i] + ' seconds');
+      var time = this.add.text(this.centerX - 20, centerY, j.toString() + ': ' + this.time[i] + ' seconds');
     }
-    var yourScore = this.add.text(this.centerX -20, centerY + 50, 'Your Score: ' + yourScore);
-    var tryAgain = this.add.text(this.centerX - 20, centerY + 75, 'Press left to try again.')
+    var yourTime = this.add.text(this.centerX -20, centerY + 50, 'Your time: ' + yourTime);
+    var yourScore = this.add.text(this.centerX -20, centerY + 75, 'Your score: ' + this.score);
+    var tryAgain = this.add.text(this.centerX - 20, centerY + 100, 'Press left to try again.')
   }
 
 
@@ -42,7 +43,7 @@ export default class GameOverScene extends Phaser.Scene {
     var cursors = this.input.keyboard.createCursorKeys();
 
     if (cursors.left.isDown) {
-      this.scene.start('Level01', {score: this.score});
+      this.scene.start('Level01', {time: this.time});
     }
   }
 }

@@ -7,10 +7,10 @@ export default class Level01 extends Phaser.Scene {
   init (data) {
     // Initialization code goes here
     if (data != null) {
-      this.scores = data.score;
-      console.log(this.scores);
+      this.times = data.time;
+      console.log(this.times);
     } else {
-      this.scores = 0;
+      this.times = 0;
     }
 
   };
@@ -320,19 +320,19 @@ export default class Level01 extends Phaser.Scene {
     );
 
     if (!this.gameOver) {
-      if (this.scores == 0) {
+      if (this.times == 0) {
         if (this.win){
-          this.scores = this.timer.getElapsedSeconds();
+          this.times = this.timer.getElapsedSeconds();
         } else {
-          this.scores = 0;
+          this.times = 0;
         }
       } else {
         if (this.win){
-          var score = this.timer.getElapsedSeconds();
-          this.scores[this.scores.length] = score;
+          var time = this.timer.getElapsedSeconds();
+          this.times[this.times.length] = time;
         }
-      }
-      this.scene.start('GameOverScene', {score: this.scores});
+      };
+      this.scene.start('GameOverScene', {time: this.times, score: this.score});
       this.gameOver = true;
       return;
     }
