@@ -73,6 +73,20 @@ export default class Level01 extends Phaser.Scene {
     sky.setDepth(-10);
     this.platforms.setCollisionByExclusion(-1, true);
 
+    // Add in the breakable blocks
+    this.block = this.physics.add
+      .sprite(784, 1135, 'platform')
+      .setSize(96, 32)
+      .setGravity(0, -1000)
+      .setImmovable(true)
+      .setDisplaySize(96, 32);
+    this.block2 = this.physics.add
+      .sprite(784 + 32 * 13, 1135, 'platform')
+      .setSize(96, 32)
+      .setGravity(0, -1000)
+      .setImmovable(true)
+      .setDisplaySize(96, 32);
+
     // Create all of the spikes
     var spikes = this.physics.add.staticGroup();
     this.createSpikes(2033, 1007, 3, spikes);
@@ -158,6 +172,8 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.collider(this.chest2, this.platforms);
     this.physics.add.collider(this.chest3, this.platforms);
     this.physics.add.collider(this.wizard, this.platforms);
+    this.physics.add.collider(this.player, this.block, this.destroyBlock, null, this);
+    this.physics.add.collider(this.player, this.block2, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
@@ -337,6 +353,15 @@ gotHit(spriteA, spriteB){
     this.win = false;
   };
 };
+
+destroyBlock(spriteA, spriteB){
+  this.time.addEvent({
+    delay: 500,
+    callback: ()=>{
+      spriteB.disableBody(true, true);
+    }
+  });
+}
 
 gameOverWin(spriteA, spriteB){
   this.gameOver = false;
