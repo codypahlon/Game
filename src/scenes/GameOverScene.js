@@ -11,7 +11,7 @@ export default class GameOverScene extends Phaser.Scene {
     } else {
       this.score = data.score;
     }
-  
+
   }
 
   preload () {
@@ -30,19 +30,19 @@ export default class GameOverScene extends Phaser.Scene {
     for (var i = 0; i < 10; i++){
       centerY += 25;
       var j = i + 1;
-      var score = this.add.text(this.centerX - 20, centerY, j.toString() + ': ' + this.score[i] + ' seconds');    
+      var score = this.add.text(this.centerX - 20, centerY, j.toString() + ': ' + this.score[i] + ' seconds');
     }
     var yourScore = this.add.text(this.centerX -20, centerY + 50, 'Your Score: ' + yourScore);
     var tryAgain = this.add.text(this.centerX - 20, centerY + 75, 'Press left to try again.')
   }
-  
+
 
   update (time, delta) {
     // Update the scene
     var cursors = this.input.keyboard.createCursorKeys();
 
     if (cursors.left.isDown) {
-      this.scene.start('Scene0', {score: this.score});
+      this.scene.start('Level01', {score: this.score});
     }
-  }  
+  }
 }
