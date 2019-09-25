@@ -118,15 +118,21 @@ export default class Level01 extends Phaser.Scene {
     this.viking.setSize(70, 96);
     this.viking2 = this.physics.add.sprite(4100, 1010, 'viking');
     this.viking2.setSize(70, 96);
+    this.viking.health = 2;
+    this.viking2.health = 2;
 
     // Add in the wizard
     this.wizard = this.physics.add.sprite(5000, 200, 'wizard');
     this.wizard.setScale(1.2);
+    this.wizard.health = 3;
 
     // Add in the 3 dwarves
     this.dwarf = this.physics.add.sprite(820, 1010, 'dwarfAxe');
     this.dwarf2 = this.physics.add.sprite(1000, 1010, 'dwarfAxe');
     this.dwarf3 = this.physics.add.sprite(1180, 1010, 'dwarfAxe');
+    this.dwarf.health = 1;
+    this.dwarf2.health = 1;
+    this.dwarf3.health = 1;
 
     // Making enemy enemyGroup
     this.enemyGroup = this.physics.add.group();
@@ -239,7 +245,7 @@ export default class Level01 extends Phaser.Scene {
     this.fireballs.children.each(
       function (b) {
         if (b.active) {
-          this.physics.add.overlap(b, this.wizard, this.gameOverWin, null, this);
+          this.physics.add.overlap(b, this.wizard, this.hitEnemy, null, this);
         };
       }.bind(this)
     );
@@ -304,14 +310,25 @@ export default class Level01 extends Phaser.Scene {
   };
 
 gotHit(spriteA, spriteB){
-  this.gameOver = false;
-  this.win = false;
+  spriteA.health -= 1;
+  spriteA.body.enable = false;
+  this.time.addEvent({
+    delay: 500,
+    callback: ()=>{
+      spriteA.body.enable = true;
+    }
+  });
+  if (spriteA.health == 0){
+    this.gameOver = false;
+    this.win = false;
+  };
 };
 
 gameOverWin(spriteA, spriteB){
   this.gameOver = false;
   this.win = true;
 }
+
 flipSprite(sprite) {
   sprite.flipX = !(sprite.flipX);
   console.log(sprite.flipX);
@@ -343,7 +360,13 @@ shoot(space) {
 
 hitEnemy (fireball, enemy){
   console.log('hit');
-  enemy.disableBody(true, true);
+  enemy.health -= 1;
+  if (enemy.health == 0){
+    enemy.disableBody(true, true);
+    if (enemy == this.wizard){
+      this.gameOverWin();
+    }
+  };
   fireball.disableBody(true, true);
 }
 
