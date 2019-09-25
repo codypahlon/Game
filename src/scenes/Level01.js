@@ -126,23 +126,6 @@ export default class Level01 extends Phaser.Scene {
     // Add event listener for movement of mouse
     this.input.keyboard.on('keydown_SPACE', this.shoot, this);
 
-    //Add in the coins
-    this.coins = this.physics.add.group({
-      key: "coin",
-      repeat: 4,
-      setXY: { x: 1000, y: 200, stepX: 30}
-    });
-    this.coins2 = this.physics.add.group({
-      key: "coin",
-      repeat: 4,
-      setXY: { x: 3100, y: 1000, stepX: 30}
-    });
-    this.coins3 = this.physics.add.group({
-      key: "coin",
-      repeat: 4,
-      setXY: { x: 1000, y: 1200, stepX: 30}
-    });
-
     // Add in all of the chests
     this.chest = this.physics.add.sprite(1020, 200, 'chest');
     this.chest2 = this.physics.add.sprite(3120, 1000, 'chest');
@@ -150,6 +133,9 @@ export default class Level01 extends Phaser.Scene {
       .setSize(96, 75)
       .setDisplaySize(96, 75);
     this.chest3 = this.physics.add.sprite(1000, 1200, 'chest');
+    this.chest.name = 'chest';
+    this.chest2.name = 'chest2';
+    this.chest3.name = 'chest3';
 
     // Add in both of the vikings
     this.viking = this.physics.add.sprite(1420, 1010, 'viking');
@@ -181,9 +167,9 @@ export default class Level01 extends Phaser.Scene {
     };
 
     // All of the physics between all the sprites
-    this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this);
-    this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this);
-    this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this);
+    this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
+    this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
+    this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
     this.physics.add.collider([this.dwarf, this.dwarf2, this.dwarf3], this.platforms);
     this.physics.add.collider(this.viking, this.platforms);
     this.physics.add.collider(this.viking2, this.platforms);
@@ -197,30 +183,6 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
-    this.physics.add.collider(this.coins, this.platforms);
-    this.physics.add.collider(this.coins2, this.platforms);
-    this.physics.add.collider(this.coins3, this.platforms);
-    this.physics.add.overlap(
-      this.player,
-      this.coins,
-      this.collectCoins,
-      null,
-      this
-    );
-    this.physics.add.overlap(
-      this.player,
-      this.coins2,
-      this.collectCoins3,
-      null,
-      this
-    );
-    this.physics.add.overlap(
-      this.player,
-      this.coins3,
-      this.collectCoins3,
-      null,
-      this
-    );
 
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
@@ -290,17 +252,6 @@ export default class Level01 extends Phaser.Scene {
     this.dwarf2.anims.play('dwarfAttack', true);
     this.dwarf3.anims.play('dwarfAttack', true);
     this.wizard.anims.play("wizard", true);
-
-    //Animate coins
-    this.coins.children.iterate(function(child){
-      child.play('spin')
-    });
-    this.coins2.children.iterate(function(child){
-      child.play('spin')
-    });
-    this.coins3.children.iterate(function(child){
-      child.play('spin')
-    });
 
     // Add in the tweens
     this.tweens.add({
@@ -438,26 +389,12 @@ collectCoins(player, coins) {
       //  Add and update the score
       this.score += 10;
       this.scoreText.setText("Score: " + this.score);
-  }
-
-collectCoins2(player, coins2) {
-    coins2.disableBody(true, true);
-    //  Add and update the score
-    this.score += 10;
-    this.scoreText.setText("Score: " + this.score);
-}
-
-collectCoins3(player, coins3) {
-    coins3.disableBody(true, true);
-    //  Add and update the score
-    this.score += 10;
-    this.scoreText.setText("Score: " + this.score);
-}
+};
 
 gameOverWin(spriteA, spriteB){
   this.gameOver = false;
   this.win = true;
-}
+};
 
 flipSprite(sprite) {
   sprite.flipX = !(sprite.flipX);
@@ -465,7 +402,31 @@ flipSprite(sprite) {
 };
 
 checkOverlap(spriteA, spriteB) {
+  // Destroying chest collider
+  this.physics.world.colliders.getActive().find(function(i){
+    return i.name == spriteB.name;
+  }).destroy();
+
+  // Playing chest animation
   spriteB.anims.play("open", true);
+
+  // Checking which chest so no boundary issues
+  var repeat = 4;
+  if (spriteB.name == 'chest2'){
+    repeat = 2;
+  };
+
+  // Creating coins from chest
+  this.coins = this.physics.add.group({
+    key: "coin",
+    repeat: repeat,
+    setXY: { x: spriteB.x - 50, y: spriteB.y, stepX: 30}
+  });
+  this.physics.add.collider(this.coins, this.platforms);
+  this.physics.add.overlap(this.player, this.coins, this.collectCoins, null, this);
+  this.coins.children.iterate(function(child){
+    child.play('spin')
+  });
 };
 
 createSpikes(x, y, num, spikes) {
