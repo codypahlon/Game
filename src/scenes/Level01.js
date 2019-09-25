@@ -49,6 +49,10 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 16,
       frameWidth: 16
     });
+    this.load.spritesheet('coin', './assets/spriteSheets/coin.png', {
+      frameHeight: 25,
+      frameWidth: 17
+    });
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
@@ -122,14 +126,30 @@ export default class Level01 extends Phaser.Scene {
     // Add event listener for movement of mouse
     this.input.keyboard.on('keydown_SPACE', this.shoot, this);
 
-    // Add in both of the chests
+    //Add in the coins
+    this.coins = this.physics.add.group({
+      key: "coin",
+      repeat: 4,
+      setXY: { x: 1000, y: 200, stepX: 30}
+    });
+    this.coins2 = this.physics.add.group({
+      key: "coin",
+      repeat: 4,
+      setXY: { x: 3100, y: 1000, stepX: 30}
+    });
+    this.coins3 = this.physics.add.group({
+      key: "coin",
+      repeat: 4,
+      setXY: { x: 1000, y: 1200, stepX: 30}
+    });
+
+    // Add in all of the chests
     this.chest = this.physics.add.sprite(1020, 200, 'chest');
     this.chest2 = this.physics.add.sprite(3120, 1000, 'chest');
     this.chest2
       .setSize(96, 75)
       .setDisplaySize(96, 75);
     this.chest3 = this.physics.add.sprite(1000, 1200, 'chest');
-
 
     // Add in both of the vikings
     this.viking = this.physics.add.sprite(1420, 1010, 'viking');
@@ -177,6 +197,30 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
+    this.physics.add.collider(this.coins, this.platforms);
+    this.physics.add.collider(this.coins2, this.platforms);
+    this.physics.add.collider(this.coins3, this.platforms);
+    this.physics.add.overlap(
+      this.player,
+      this.coins,
+      this.collectCoins,
+      null,
+      this
+    );
+    this.physics.add.overlap(
+      this.player,
+      this.coins2,
+      this.collectCoins3,
+      null,
+      this
+    );
+    this.physics.add.overlap(
+      this.player,
+      this.coins3,
+      this.collectCoins3,
+      null,
+      this
+    );
 
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
@@ -232,6 +276,13 @@ export default class Level01 extends Phaser.Scene {
       repeat: 0
     });
 
+    this.anims.create({
+      key: 'spin',
+      frames: this.anims.generateFrameNumbers('coin', {start: 0, end: 5}),
+      frameRate: 9,
+      repeat: -1
+    });
+
     // Play animations
     this.viking.anims.play("vikingwalk", true);
     this.viking2.anims.play("vikingwalk", true);
@@ -239,6 +290,17 @@ export default class Level01 extends Phaser.Scene {
     this.dwarf2.anims.play('dwarfAttack', true);
     this.dwarf3.anims.play('dwarfAttack', true);
     this.wizard.anims.play("wizard", true);
+
+    //Animate coins
+    this.coins.children.iterate(function(child){
+      child.play('spin')
+    });
+    this.coins2.children.iterate(function(child){
+      child.play('spin')
+    });
+    this.coins3.children.iterate(function(child){
+      child.play('spin')
+    });
 
     // Add in the tweens
     this.tweens.add({
@@ -267,6 +329,14 @@ export default class Level01 extends Phaser.Scene {
       ease: 'Linear',
       loop: true
     });
+
+    //  The score
+    this.score = 0;
+    this.scoreText = this.add.text(16, 16, "score: 0", {
+      fontSize: "32px",
+      fill: "#000"
+    });
+    this.scoreText.setScrollFactor(0);
   }
 
   update (time, delta) {
@@ -361,6 +431,27 @@ destroyBlock(spriteA, spriteB){
       spriteB.disableBody(true, true);
     }
   });
+}
+
+collectCoins(player, coins) {
+      coins.disableBody(true, true);
+      //  Add and update the score
+      this.score += 10;
+      this.scoreText.setText("Score: " + this.score);
+  }
+
+collectCoins2(player, coins2) {
+    coins2.disableBody(true, true);
+    //  Add and update the score
+    this.score += 10;
+    this.scoreText.setText("Score: " + this.score);
+}
+
+collectCoins3(player, coins3) {
+    coins3.disableBody(true, true);
+    //  Add and update the score
+    this.score += 10;
+    this.scoreText.setText("Score: " + this.score);
 }
 
 gameOverWin(spriteA, spriteB){
