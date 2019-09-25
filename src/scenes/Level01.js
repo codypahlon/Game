@@ -110,8 +110,8 @@ export default class Level01 extends Phaser.Scene {
     this.chest2
       .setSize(96, 75)
       .setDisplaySize(96, 75);
-    this.chest.setCollideWorldBounds(true);
-    this.chest2.setCollideWorldBounds(true);
+    this.chest3 = this.physics.add.sprite(1000, 1200, 'chest');
+
 
     // Add in both of the vikings
     this.viking = this.physics.add.sprite(1420, 1010, 'viking');
@@ -127,9 +127,9 @@ export default class Level01 extends Phaser.Scene {
     this.wizard.health = 3;
 
     // Add in the 3 dwarves
-    this.dwarf = this.physics.add.sprite(820, 1010, 'dwarfAxe');
+    this.dwarf = this.physics.add.sprite(900, 1010, 'dwarfAxe');
     this.dwarf2 = this.physics.add.sprite(1000, 1010, 'dwarfAxe');
-    this.dwarf3 = this.physics.add.sprite(1180, 1010, 'dwarfAxe');
+    this.dwarf3 = this.physics.add.sprite(1100, 1010, 'dwarfAxe');
     this.dwarf.health = 1;
     this.dwarf2.health = 1;
     this.dwarf3.health = 1;
@@ -145,12 +145,14 @@ export default class Level01 extends Phaser.Scene {
     // All of the physics between all the sprites
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this);
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this);
+    this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this);
     this.physics.add.collider([this.dwarf, this.dwarf2, this.dwarf3], platforms);
     this.physics.add.collider(this.viking, platforms);
     this.physics.add.collider(this.viking2, platforms);
     this.physics.add.collider(this.player, platforms);
     this.physics.add.collider(this.chest, platforms);
     this.physics.add.collider(this.chest2, platforms);
+    this.physics.add.collider(this.chest3, platforms);
     this.physics.add.collider(this.wizard, platforms);
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
