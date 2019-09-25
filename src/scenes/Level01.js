@@ -92,7 +92,7 @@ export default class Level01 extends Phaser.Scene {
       .setDisplaySize(100, 80);
     this.player.body.setMaxSpeed(500);
     this.player.body.setMaxVelocity(1000);
-    this.player.body.setGravity(0, 10000);
+    this.player.body.setGravity(0, 25000);
     this.physics.world.setBounds(0, 0, 5800, 1100);
 
     // Adding in the fireball
@@ -379,10 +379,11 @@ hitEnemy (fireball, enemy){
   if (enemy.health == 0){
     this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
     this.explosion.setGravity(0, -1000);
+    this.explosion.setDisplaySize(50, 50);
     enemy.disableBody(true, true);
     this.explosion.anims.play('explosion', true);
     this.time.addEvent({
-      delay: 500,
+      delay: 200,
       callback: ()=>{
         this.explosion.disableBody(true, true);
       }
