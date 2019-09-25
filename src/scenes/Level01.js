@@ -44,7 +44,11 @@ export default class Level01 extends Phaser.Scene {
     this.load.spritesheet('fireball', './assets/spriteSheets/fireball.png', {
       frameHeight: 25,
       frameWidth: 16.666
-    })
+    });
+    this.load.spritesheet('explosion', './assets/spriteSheets/explosion.png', {
+      frameHeight: 16,
+      frameWidth: 16
+    });
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
@@ -64,10 +68,10 @@ export default class Level01 extends Phaser.Scene {
     // Make the map work
     const map = this.make.tilemap({key: 'map'});
     const tileset = map.addTilesetImage('bad-tileset', 'tiles');
-    const platforms = map.createStaticLayer('Collision', tileset, 0, 0);
+    this.platforms = map.createStaticLayer('Collision', tileset, 0, 0);
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
     sky.setDepth(-10);
-    platforms.setCollisionByExclusion(-1, true);
+    this.platforms.setCollisionByExclusion(-1, true);
 
     // Create all of the spikes
     var spikes = this.physics.add.staticGroup();
@@ -146,14 +150,14 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this);
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this);
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this);
-    this.physics.add.collider([this.dwarf, this.dwarf2, this.dwarf3], platforms);
-    this.physics.add.collider(this.viking, platforms);
-    this.physics.add.collider(this.viking2, platforms);
-    this.physics.add.collider(this.player, platforms);
-    this.physics.add.collider(this.chest, platforms);
-    this.physics.add.collider(this.chest2, platforms);
-    this.physics.add.collider(this.chest3, platforms);
-    this.physics.add.collider(this.wizard, platforms);
+    this.physics.add.collider([this.dwarf, this.dwarf2, this.dwarf3], this.platforms);
+    this.physics.add.collider(this.viking, this.platforms);
+    this.physics.add.collider(this.viking2, this.platforms);
+    this.physics.add.collider(this.player, this.platforms);
+    this.physics.add.collider(this.chest, this.platforms);
+    this.physics.add.collider(this.chest2, this.platforms);
+    this.physics.add.collider(this.chest3, this.platforms);
+    this.physics.add.collider(this.wizard, this.platforms);
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
@@ -203,6 +207,13 @@ export default class Level01 extends Phaser.Scene {
       frames: this.anims.generateFrameNumbers('wizard', {start: 0, end: 1}),
       frameRate: 5,
       repeat: -1
+    });
+
+    this.anims.create({
+      key: 'explosion',
+      frames: this.anims.generateFrameNumbers('explosion', {start: 0, end:4}),
+      framerate: 10,
+      repeat: 0
     });
 
     // Play animations
@@ -257,6 +268,7 @@ export default class Level01 extends Phaser.Scene {
       function (b) {
         if (b.active) {
           this.physics.add.overlap(b, this.enemyGroup, this.hitEnemy, null, this);
+          this.physics.add.collider(b, this.platforms, this.hitEnemy, null, this);
           if (b.y < 0) {
             b.setActive(false);
           } else if (b.y > this.cameras.main.height) {
@@ -358,13 +370,23 @@ shoot(space) {
     var flag = 1;
   }
   fireball.setVelocity(flag * 1000, 0);
+  fireball.setGravity(0, -1000);
 };
 
 hitEnemy (fireball, enemy){
   console.log('hit');
   enemy.health -= 1;
   if (enemy.health == 0){
+    this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
+    this.explosion.setGravity(0, -1000);
     enemy.disableBody(true, true);
+    this.explosion.anims.play('explosion', true);
+    this.time.addEvent({
+      delay: 500,
+      callback: ()=>{
+        this.explosion.disableBody(true, true);
+      }
+    });
     if (enemy == this.wizard){
       this.gameOverWin();
     }
