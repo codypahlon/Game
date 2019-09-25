@@ -102,7 +102,6 @@ export default class Level01 extends Phaser.Scene {
 
     // Add the dragon and all of his properities
     this.player = this.physics.add.sprite(100, 1000, 'dragon');
-    this.player.health = 3;
     this.player.collideWorldBounds = true;
     this.player
       .setSize(100, 80)
@@ -283,11 +282,20 @@ export default class Level01 extends Phaser.Scene {
 
     //  The score
     this.score = 0;
-    this.scoreText = this.add.text(16, 16, "score: 0", {
+    this.scoreText = this.add.text(16, 16, "Score: 0", {
       fontSize: "32px",
       fill: "#000"
     });
     this.scoreText.setScrollFactor(0);
+
+    //Player health tracker
+    this.player.health = 100;
+    this.healthText = this.add.text(16, 46, "Health: 100%", {
+      fontSize: "20px",
+      fill: "#000"
+    });
+    this.healthText.setScrollFactor(0);
+
   }
 
   update (time, delta) {
@@ -361,8 +369,9 @@ export default class Level01 extends Phaser.Scene {
   };
 
 gotHit(spriteA, spriteB){
-  spriteA.health -= 1;
+  spriteA.health -= 25;
   spriteA.body.enable = false;
+  this.healthText.setText("Health: " + spriteA.health + "%");
   this.time.addEvent({
     delay: 500,
     callback: ()=>{
