@@ -76,6 +76,7 @@ export default class Level01 extends Phaser.Scene {
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
     sky.setDepth(-10);
     this.platforms.setCollisionByExclusion(-1, true);
+    this.TILE_BIAS = 32;
 
     // Add in the breakable blocks
     this.block = this.physics.add
@@ -107,9 +108,9 @@ export default class Level01 extends Phaser.Scene {
       .setSize(100, 80)
       .setOffset(20, 20)
       .setDisplaySize(100, 80);
-    this.player.body.setMaxSpeed(500);
-    this.player.body.setMaxVelocity(1000);
-    this.player.body.setGravity(0, 25000);
+    this.player.body.setMaxSpeed(10000);
+    this.player.body.setMaxVelocity(5000);
+    this.player.body.setDragX(2000);
     this.physics.world.setBounds(0, 0, 5800, 1100);
 
     // Adding in the fireball
@@ -119,11 +120,17 @@ export default class Level01 extends Phaser.Scene {
     this.speed = 1000;
 
     this.fireballs = this.physics.add.group({
-      defaultKey: 'fireball'
+      defaultKey: 'fireball',
+      maxSize: 2
     });
 
-    // Add event listener for movement of mouse
+    // Add event listener for shoot
     this.input.keyboard.on('keydown_SPACE', this.shoot, this);
+
+    // Add event listener for jump
+    this.jumpMax = 2;
+    this.jumpCount = 0;
+    this.input.keyboard.on('keydown_UP', this.doubleJump, this);
 
     // Add in all of the chests
     this.chest = this.physics.add.sprite(1020, 200, 'chest');
@@ -182,7 +189,6 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
-
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -313,20 +319,15 @@ export default class Level01 extends Phaser.Scene {
       function (b) {
         if (b.active) {
           this.physics.add.overlap(b, this.enemyGroup, this.hitEnemy, null, this);
-          this.physics.add.collider(b, this.platforms, this.hitEnemy, null, this);
-          if (b.y < 0) {
-            b.setActive(false);
-          } else if (b.y > this.cameras.main.height) {
-            b.setActive(false);
-          } else if (b.x < 0) {
-            b.setActive(false);
-          } else if (b.x > this.cameras.main.width) {
-            b.setActive(false);
+          this.physics.add.collider(b, this.platforms, function destroy(){b.destroy()}, null, this);
+          if (b.x > this.player.x + 500){
+            b.destroy();
           }
         }
       }.bind(this)
     );
 
+    //Changing scenes to gameover
     if (!this.gameOver) {
       if (this.times == 0) {
         if (this.win){
@@ -348,9 +349,9 @@ export default class Level01 extends Phaser.Scene {
     //Set speed of player
     const speed = 500;
     const prevVelocity = this.player.body.velocity.clone();
+
     //Create cursor keys and assign events
     var cursors = this.input.keyboard.createCursorKeys();
-    this.player.setVelocity(0);
 
     if (cursors.left.isDown) {
       this.player.body.setVelocityX(-speed);
@@ -362,22 +363,23 @@ export default class Level01 extends Phaser.Scene {
       this.player.flipX = false;
     } else {
       this.player.anims.play("idle", true);
-    }
-    if (cursors.up.isDown) {
-      this.player.body.setVelocityY(-2 * speed);
-    }
+    };
+    if (this.jumpCount == 2 && this.player.body.onFloor()){
+      this.jumpCount = 0;
+    };
   };
 
 gotHit(spriteA, spriteB){
   spriteA.health -= 25;
-  spriteA.body.enable = false;
+  spriteB.body.enable = false;
   this.healthText.setText("Health: " + spriteA.health + "%");
   this.time.addEvent({
     delay: 500,
     callback: ()=>{
-      spriteA.body.enable = true;
+      spriteB.body.enable = true;
     }
   });
+
   if (spriteA.health == 0){
     this.gameOver = false;
     this.win = false;
@@ -438,6 +440,7 @@ checkOverlap(spriteA, spriteB) {
   });
 };
 
+// Creating the spikes
 createSpikes(x, y, num, spikes) {
   for (var i = 0; i < num; i++){
   spikes
@@ -447,6 +450,7 @@ createSpikes(x, y, num, spikes) {
   }
 };
 
+// Shooting a fireball
 shoot(space) {
   var fireball = this.fireballs.get();
   fireball.enableBody(true, this.player.x, this.player.y, true, true)
@@ -454,11 +458,12 @@ shoot(space) {
     var flag = -1;
   } else {
     var flag = 1;
-  }
+  };
   fireball.setVelocity(flag * 1000, 0);
   fireball.setGravity(0, -1000);
 };
 
+// Checking to see whether you have hit an enemy
 hitEnemy (fireball, enemy){
   console.log('hit');
   enemy.health -= 1;
@@ -481,6 +486,18 @@ hitEnemy (fireball, enemy){
     }
   };
   fireball.disableBody(true, true);
-}
+};
 
+// Single jumping
+singleJump (){
+  this.player.body.velocity.y = -600;
+};
+
+// Double jumping
+doubleJump (){
+  if (this.jumpCount < this.jumpMax){
+    this.singleJump();
+    this.jumpCount++;
+  }
+};
 }
