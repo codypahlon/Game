@@ -53,6 +53,10 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 25,
       frameWidth: 17
     });
+    this.load.spritesheet('beam', './assets/spriteSheets/beam.png',{
+      frameHeight: 16,
+      frameWidth: 16
+    });
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
@@ -111,7 +115,7 @@ export default class Level01 extends Phaser.Scene {
     this.player.body.setMaxSpeed(10000);
     this.player.body.setMaxVelocity(5000);
     this.player.body.setDragX(2000);
-    this.physics.world.setBounds(0, 0, 5800, 1100);
+    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     // Adding in the fireball
     var fireball, fireballs, enemy, enemyGroup;
@@ -122,6 +126,10 @@ export default class Level01 extends Phaser.Scene {
     this.fireballs = this.physics.add.group({
       defaultKey: 'fireball',
       maxSize: 2
+    });
+
+    this.wizardFireballs = this.physics.add.group({
+      defaultKey: 'beam',
     });
 
     // Add event listener for shoot
@@ -152,7 +160,7 @@ export default class Level01 extends Phaser.Scene {
     this.viking2.health = 2;
 
     // Add in the wizard
-    this.wizard = this.physics.add.sprite(5000, 200, 'wizard');
+    this.wizard = this.physics.add.sprite(5000, 1000, 'wizard');
     this.wizard.setScale(1.2);
     this.wizard.health = 3;
 
@@ -286,6 +294,33 @@ export default class Level01 extends Phaser.Scene {
       loop: true
     });
 
+    this.wizard.flipX = false;
+    this.tweens.add({
+    targets: this.wizard,
+    delay: 6000,
+    x: 4410,
+    duration: 2000,
+    ease: 'Linear',
+    loop: -1,
+    yoyo: true,
+    onYoyo: ()=>{
+      this.wizard.flipX = true;
+      this.time.addEvent({
+        delay: 2000,
+        callback: ()=>{
+          this.wizard.flipX = false;
+          this.wizardAttack();
+          this.time.addEvent({
+            delay: 8000,
+            callback: ()=>{
+              this.wizard.flipX = true;
+            }
+          })
+        }
+      });
+    }
+    });
+
     //  The score
     this.score = 0;
     this.scoreText = this.add.text(16, 16, "Score: 0", {
@@ -409,7 +444,6 @@ gameOverWin(spriteA, spriteB){
 
 flipSprite(sprite) {
   sprite.flipX = !(sprite.flipX);
-  console.log(sprite.flipX);
 };
 
 checkOverlap(spriteA, spriteB) {
@@ -453,7 +487,7 @@ createSpikes(x, y, num, spikes) {
 // Shooting a fireball
 shoot(space) {
   var fireball = this.fireballs.get();
-  fireball.enableBody(true, this.player.x, this.player.y, true, true)
+  fireball.enableBody(true, this.player.x, this.player.y, true, true);
   if (this.player.flipX == true){
     var flag = -1;
   } else {
@@ -461,6 +495,14 @@ shoot(space) {
   };
   fireball.setVelocity(flag * 1000, 0);
   fireball.setGravity(0, -1000);
+};
+
+wizardAttack(){
+  var wizardFireball = this.wizardFireballs.get();
+  wizardFireball.enableBody(true, this.wizard.x, this.wizard.y, true, true);
+  wizardFireball.setVelocity(-1000, 0);
+  wizardFireball.setDisplaySize(40, 40);
+  wizardFireball.setGravity(0, -1000);
 };
 
 // Checking to see whether you have hit an enemy
