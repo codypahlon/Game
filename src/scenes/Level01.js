@@ -107,14 +107,15 @@ export default class Level01 extends Phaser.Scene {
 
     // Add the dragon and all of his properities
     this.player = this.physics.add.sprite(100, 1000, 'dragon');
+    //this.player.body.enable = false;
     this.player.collideWorldBounds = true;
     this.player
-      .setSize(100, 80)
-      .setOffset(20, 20)
-      .setDisplaySize(100, 80);
+      .setDisplaySize(80, 64)
+      .setSize(80, 64)
+      .setOffset(30, 30);
     this.player.body.setMaxSpeed(10000);
     this.player.body.setMaxVelocity(5000);
-    this.player.body.setDragX(2000);
+    this.player.body.setDragX(5000);
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     // Adding in the fireball
@@ -125,11 +126,11 @@ export default class Level01 extends Phaser.Scene {
 
     this.fireballs = this.physics.add.group({
       defaultKey: 'fireball',
-      maxSize: 2
+      //maxSize: 1
     });
 
     this.wizardFireballs = this.physics.add.group({
-      defaultKey: 'beam',
+      defaultKey: 'beam'
     });
 
     // Add event listener for shoot
@@ -160,9 +161,11 @@ export default class Level01 extends Phaser.Scene {
     this.viking2.health = 2;
 
     // Add in the wizard
-    this.wizard = this.physics.add.sprite(5000, 1000, 'wizard');
+    this.wizard = this.physics.add.sprite(5000, 1050  , 'wizard');
     this.wizard.setScale(1.2);
-    this.wizard.health = 3;
+    this.wizard.setImmovable(true);
+    this.wizard.body.enable = false;
+    this.wizard.health = 50;
 
     // Add in the 3 dwarves
     this.dwarf = this.physics.add.sprite(900, 1010, 'dwarfAxe');
@@ -294,31 +297,22 @@ export default class Level01 extends Phaser.Scene {
       loop: true
     });
 
-    this.wizard.flipX = false;
-    this.tweens.add({
+    this.countTween = 0;
+    this.wizardTween = this.tweens.add({
+    key: 'wizardTween',
+    paused: false,
     targets: this.wizard,
-    delay: 6000,
+    delay: 2000,
     x: 4410,
     duration: 2000,
     ease: 'Linear',
     loop: -1,
     yoyo: true,
-    onYoyo: ()=>{
-      this.wizard.flipX = true;
-      this.time.addEvent({
-        delay: 2000,
-        callback: ()=>{
-          this.wizard.flipX = false;
-          this.wizardAttack();
-          this.time.addEvent({
-            delay: 8000,
-            callback: ()=>{
-              this.wizard.flipX = true;
-            }
-          })
-        }
-      });
-    }
+    onLoop: ()=>{
+      console.log(this.countTween);
+      this.countTween += 1
+      this.wizardAttack();
+      }
     });
 
     //  The score
@@ -340,6 +334,28 @@ export default class Level01 extends Phaser.Scene {
   }
 
   update (time, delta) {
+    // Flipping wizard and attacking
+    if (this.wizard.x == 4410){
+      this.wizard.flipX = true;
+    } else if (this.wizard.x == 5000){
+      this.wizard.flipX = false;
+    };
+
+    // Attacking from the sky
+    if (this.wizard.x == 5000 && this.countTween == 3){
+      this.wizardSkyAttack();
+      this.countTween = 0;
+      this.wizardTween.pause()
+      this.wizard.body.enable = true;
+      this.time.addEvent({
+        delay: 5000,
+        callback: ()=>{
+          this.wizardTween.resume();
+          this.wizard.body.enable = false;
+        }
+      })
+    }
+
     // Win condition
     this.fireballs.children.each(
       function (b) {
@@ -349,7 +365,21 @@ export default class Level01 extends Phaser.Scene {
       }.bind(this)
     );
 
-    // Update the scene
+    // Add colliders to wizard wizardFireballs
+    this.wizardFireballs.children.each(
+      function (b) {
+        if (b.active) {
+          b.name = 'wizardFireball';
+          this.physics.add.overlap(this.player, b, this.gotHit, null, this);
+          this.physics.add.collider(b, this.platforms, function destroy() {b.destroy()}, null, this);
+          if (b.x > this.wizard.x + 500){
+            b.destroy();
+          }
+        }
+      }.bind(this)
+    );
+
+    // Add colliders to fireballs
     this.fireballs.children.each(
       function (b) {
         if (b.active) {
@@ -406,14 +436,18 @@ export default class Level01 extends Phaser.Scene {
 
 gotHit(spriteA, spriteB){
   spriteA.health -= 25;
-  spriteB.body.enable = false;
+  if (spriteB.name == 'wizardFireball'){
+    spriteB.destroy();
+  } else {
+    spriteB.body.enable = false;
+    this.time.addEvent({
+      delay: 500,
+      callback: ()=>{
+        spriteB.body.enable = true;
+      }
+    });
+  };
   this.healthText.setText("Health: " + spriteA.health + "%");
-  this.time.addEvent({
-    delay: 500,
-    callback: ()=>{
-      spriteB.body.enable = true;
-    }
-  });
 
   if (spriteA.health == 0){
     this.gameOver = false;
@@ -498,12 +532,40 @@ shoot(space) {
 };
 
 wizardAttack(){
-  var wizardFireball = this.wizardFireballs.get();
-  wizardFireball.enableBody(true, this.wizard.x, this.wizard.y, true, true);
-  wizardFireball.setVelocity(-1000, 0);
-  wizardFireball.setDisplaySize(40, 40);
-  wizardFireball.setGravity(0, -1000);
+  var x, y, r;
+  r = Math.random();
+  x = 5000;
+  y = this.wizard.y;
+  if (r <= 0.33){
+    this.enableWizardBall(x, y + 40);
+    this.enableWizardBall(x, y -160);
+  } else if (r <= 0.66 && r > 0.33) {
+    this.enableWizardBall(x, y + 40);
+    this.enableWizardBall(x, y -60);
+  } else if (r > 0.66 && r <= 1.0){
+    this.enableWizardBall(x, y -60);
+    this.enableWizardBall(x, y -160);
+  }
 };
+
+enableWizardBall(x, y, size = 40, gravity = -1000, velocity = -600){
+  var wizardFireball = this.wizardFireballs.get();
+  wizardFireball.enableBody(true, x, y, true, true);
+  wizardFireball.setVelocity(velocity, 0);
+  wizardFireball.setDisplaySize(size, size);
+  wizardFireball.setGravity(0, gravity);
+}
+
+wizardSkyAttack(){
+  console.log('fire away');
+  var r = Math.floor(Math.random() * 4);
+  console.log(r);
+  for (var i = 0; i < 5; i++){
+    if (i != r){
+      this.enableWizardBall(4469 + 118 * i, 600, 118, -750,  0);
+    }
+  }
+}
 
 // Checking to see whether you have hit an enemy
 hitEnemy (fireball, enemy){
