@@ -112,7 +112,7 @@ export default class Level01 extends Phaser.Scene {
     this.createSpikes(2033 + 32 * 28, 1007, 2, spikes);
 
     // Add the dragon and all of his properities
-    this.player = this.physics.add.sprite(4750, 1000, 'dragon');
+    this.player = this.physics.add.sprite(100, 1000, 'dragon');
     //this.player.body.enable = false;
     this.player.collideWorldBounds = true;
     this.player
