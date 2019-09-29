@@ -2,18 +2,17 @@
 export default class Level01 extends Phaser.Scene {
   constructor () {
     super('Level01');
-  };
+  }
 
   init (data) {
     // Initialization code goes here
     if (data != null) {
       this.times = data.time;
-      console.log(this.times);
     } else {
       this.times = 0;
     }
 
-  };
+  }
 
   preload () {
     // Preload assets
@@ -33,7 +32,7 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 100,
       frameWidth: 80
     });
-    this.load.spritesheet('wizard', './assets/spriteSheets/wizard.png', {
+    this.load.spritesheet('wizard', './assets/spriteSheets/bluewizard.png', {
       frameHeight: 110,
       frameWidth: 75
     });
@@ -53,14 +52,14 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 25,
       frameWidth: 17
     });
-    this.load.spritesheet('beam', './assets/spriteSheets/beam.png',{
-      frameHeight: 16,
-      frameWidth: 16
+    this.load.spritesheet('beam', './assets/spriteSheets/bluefire.png',{
+      frameHeight: 25,
+      frameWidth: 16.666
     });
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
-  };
+  }
 
   create (data) {
     // Declare variables
@@ -95,6 +94,13 @@ export default class Level01 extends Phaser.Scene {
       .setGravity(0, -1000)
       .setImmovable(true)
       .setDisplaySize(96, 32);
+    this.block3 = this.physics.add
+      .sprite(4320, 1088, 'platform')
+      .setSize(100, 25)
+      .setGravity(0, -1000)
+      .setImmovable(true)
+      .setDisplaySize(64, 64);
+    this.block3.name = 'bossBlock';
 
     // Create all of the spikes
     var spikes = this.physics.add.staticGroup();
@@ -161,7 +167,7 @@ export default class Level01 extends Phaser.Scene {
     this.viking2.health = 2;
 
     // Add in the wizard
-    this.wizard = this.physics.add.sprite(5000, 1050  , 'wizard');
+    this.wizard = this.physics.add.sprite(5000, 1050, 'wizard');
     this.wizard.setScale(1.2);
     this.wizard.setImmovable(true);
     this.wizard.body.enable = false;
@@ -181,25 +187,21 @@ export default class Level01 extends Phaser.Scene {
 
     for (var i = 0; i < enemies.length; i++){
       this.enemyGroup.add(enemies[i]);
-    };
+    }
 
     // All of the physics between all the sprites
+    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
-    this.physics.add.collider([this.dwarf, this.dwarf2, this.dwarf3], this.platforms);
-    this.physics.add.collider(this.viking, this.platforms);
-    this.physics.add.collider(this.viking2, this.platforms);
-    this.physics.add.collider(this.player, this.platforms);
-    this.physics.add.collider(this.chest, this.platforms);
-    this.physics.add.collider(this.chest2, this.platforms);
-    this.physics.add.collider(this.chest3, this.platforms);
-    this.physics.add.collider(this.wizard, this.platforms);
+    this.physics.add.collider(platformCollisions, this.platforms);
     this.physics.add.collider(this.player, this.block, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.block2, this.destroyBlock, null, this);
+    this.physics.add.collider(this.player, this.block3, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
+
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -261,6 +263,20 @@ export default class Level01 extends Phaser.Scene {
       repeat: -1
     });
 
+    this.anims.create({
+      key: 'fireball',
+      frames: this.anims.generateFrameNumbers('fireball', {start: 0, end: 2}),
+      frameRate: 10,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'beam',
+      frames: this.anims.generateFrameNumbers('beam', {start: 0, end: 2}),
+      frameRate: 10,
+      repeat: -1
+    });
+
     // Play animations
     this.viking.anims.play("vikingwalk", true);
     this.viking2.anims.play("vikingwalk", true);
@@ -299,18 +315,19 @@ export default class Level01 extends Phaser.Scene {
 
     this.countTween = 0;
     this.wizardTween = this.tweens.add({
-    key: 'wizardTween',
-    paused: false,
+    paused: true,
     targets: this.wizard,
     delay: 2000,
-    x: 4410,
+    props: {
+      x: 4410,
+      y: {value: 900, duration: 1500, ease: 'Linear'}
+    },
     duration: 2000,
-    ease: 'Linear',
+    ease: 'Power2',
     loop: -1,
     yoyo: true,
     onLoop: ()=>{
-      console.log(this.countTween);
-      this.countTween += 1
+      this.countTween += 1;
       this.wizardAttack();
       }
     });
@@ -339,21 +356,23 @@ export default class Level01 extends Phaser.Scene {
       this.wizard.flipX = true;
     } else if (this.wizard.x == 5000){
       this.wizard.flipX = false;
-    };
+    }
 
     // Attacking from the sky
     if (this.wizard.x == 5000 && this.countTween == 3){
       this.wizardSkyAttack();
       this.countTween = 0;
-      this.wizardTween.pause()
+      this.wizardTween.pause();
       this.wizard.body.enable = true;
+      this.wizard.setTint(0xff9999);
       this.time.addEvent({
         delay: 5000,
         callback: ()=>{
           this.wizardTween.resume();
+          this.wizard.clearTint();
           this.wizard.body.enable = false;
         }
-      })
+      });
     }
 
     // Win condition
@@ -361,7 +380,7 @@ export default class Level01 extends Phaser.Scene {
       function (b) {
         if (b.active) {
           this.physics.add.overlap(b, this.wizard, this.hitEnemy, null, this);
-        };
+        }
       }.bind(this)
     );
 
@@ -371,7 +390,7 @@ export default class Level01 extends Phaser.Scene {
         if (b.active) {
           b.name = 'wizardFireball';
           this.physics.add.overlap(this.player, b, this.gotHit, null, this);
-          this.physics.add.collider(b, this.platforms, function destroy() {b.destroy()}, null, this);
+          this.physics.add.collider(b, this.platforms, function destroy() {b.destroy();}, null, this);
           if (b.x > this.wizard.x + 500){
             b.destroy();
           }
@@ -384,7 +403,7 @@ export default class Level01 extends Phaser.Scene {
       function (b) {
         if (b.active) {
           this.physics.add.overlap(b, this.enemyGroup, this.hitEnemy, null, this);
-          this.physics.add.collider(b, this.platforms, function destroy(){b.destroy()}, null, this);
+          this.physics.add.collider(b, this.platforms, function destroy(){b.destroy();}, null, this);
           if (b.x > this.player.x + 500){
             b.destroy();
           }
@@ -405,14 +424,14 @@ export default class Level01 extends Phaser.Scene {
           var time = this.timer.getElapsedSeconds();
           this.times[this.times.length] = time;
         }
-      };
+      }
       this.scene.start('GameOverScene', {time: this.times, score: this.score});
       this.gameOver = true;
       return;
     }
 
     //Set speed of player
-    const speed = 500;
+    const speed = 600;
     const prevVelocity = this.player.body.velocity.clone();
 
     //Create cursor keys and assign events
@@ -428,11 +447,12 @@ export default class Level01 extends Phaser.Scene {
       this.player.flipX = false;
     } else {
       this.player.anims.play("idle", true);
-    };
+    }
     if (this.jumpCount == 2 && this.player.body.onFloor()){
       this.jumpCount = 0;
-    };
-  };
+    }
+  }
+
 
 gotHit(spriteA, spriteB){
   spriteA.health -= 25;
@@ -446,14 +466,14 @@ gotHit(spriteA, spriteB){
         spriteB.body.enable = true;
       }
     });
-  };
+  }
   this.healthText.setText("Health: " + spriteA.health + "%");
 
   if (spriteA.health == 0){
     this.gameOver = false;
     this.win = false;
-  };
-};
+  }
+}
 
 destroyBlock(spriteA, spriteB){
   this.time.addEvent({
@@ -462,6 +482,9 @@ destroyBlock(spriteA, spriteB){
       spriteB.disableBody(true, true);
     }
   });
+  if (spriteB.name == 'bossBlock'){
+    this.wizardTween.resume();
+  }
 }
 
 collectCoins(player, coins) {
@@ -469,16 +492,16 @@ collectCoins(player, coins) {
       //  Add and update the score
       this.score += 10;
       this.scoreText.setText("Score: " + this.score);
-};
+}
 
 gameOverWin(spriteA, spriteB){
   this.gameOver = false;
   this.win = true;
-};
+}
 
 flipSprite(sprite) {
   sprite.flipX = !(sprite.flipX);
-};
+}
 
 checkOverlap(spriteA, spriteB) {
   // Destroying chest collider
@@ -493,7 +516,7 @@ checkOverlap(spriteA, spriteB) {
   var repeat = 4;
   if (spriteB.name == 'chest2'){
     repeat = 2;
-  };
+  }
 
   // Creating coins from chest
   this.coins = this.physics.add.group({
@@ -504,9 +527,9 @@ checkOverlap(spriteA, spriteB) {
   this.physics.add.collider(this.coins, this.platforms);
   this.physics.add.overlap(this.player, this.coins, this.collectCoins, null, this);
   this.coins.children.iterate(function(child){
-    child.play('spin')
+    child.play('spin');
   });
-};
+}
 
 // Creating the spikes
 createSpikes(x, y, num, spikes) {
@@ -516,20 +539,21 @@ createSpikes(x, y, num, spikes) {
     .setSize(32, 32)
     .setDisplaySize(32, 32);
   }
-};
+}
 
 // Shooting a fireball
 shoot(space) {
   var fireball = this.fireballs.get();
+  fireball.anims.play('fireball');
   fireball.enableBody(true, this.player.x, this.player.y, true, true);
   if (this.player.flipX == true){
     var flag = -1;
   } else {
     var flag = 1;
-  };
+  }
   fireball.setVelocity(flag * 1000, 0);
   fireball.setGravity(0, -1000);
-};
+}
 
 wizardAttack(){
   var x, y, r;
@@ -546,7 +570,7 @@ wizardAttack(){
     this.enableWizardBall(x, y -60);
     this.enableWizardBall(x, y -160);
   }
-};
+}
 
 enableWizardBall(x, y, size = 40, gravity = -1000, velocity = -600){
   var wizardFireball = this.wizardFireballs.get();
@@ -554,22 +578,20 @@ enableWizardBall(x, y, size = 40, gravity = -1000, velocity = -600){
   wizardFireball.setVelocity(velocity, 0);
   wizardFireball.setDisplaySize(size, size);
   wizardFireball.setGravity(0, gravity);
+  wizardFireball.anims.play('beam');
 }
 
 wizardSkyAttack(){
-  console.log('fire away');
   var r = Math.floor(Math.random() * 4);
-  console.log(r);
   for (var i = 0; i < 5; i++){
     if (i != r){
-      this.enableWizardBall(4469 + 118 * i, 600, 118, -750,  0);
+      this.enableWizardBall(4469 + 118 * i, 600, 118, -800,  0);
     }
   }
 }
 
 // Checking to see whether you have hit an enemy
 hitEnemy (fireball, enemy){
-  console.log('hit');
   enemy.health -= 1;
   this.score += 5;
   this.scoreText.setText("Score: " + this.score);
@@ -588,14 +610,14 @@ hitEnemy (fireball, enemy){
     if (enemy == this.wizard){
       this.gameOverWin();
     }
-  };
+  }
   fireball.disableBody(true, true);
-};
+}
 
 // Single jumping
 singleJump (){
   this.player.body.velocity.y = -600;
-};
+}
 
 // Double jumping
 doubleJump (){
@@ -603,5 +625,5 @@ doubleJump (){
     this.singleJump();
     this.jumpCount++;
   }
-};
+}
 }
