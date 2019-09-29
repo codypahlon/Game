@@ -112,7 +112,7 @@ export default class Level01 extends Phaser.Scene {
     this.createSpikes(2033 + 32 * 28, 1007, 2, spikes);
 
     // Add the dragon and all of his properities
-    this.player = this.physics.add.sprite(100, 1000, 'dragon');
+    this.player = this.physics.add.sprite(4750, 1000, 'dragon');
     //this.player.body.enable = false;
     this.player.collideWorldBounds = true;
     this.player
@@ -244,7 +244,7 @@ export default class Level01 extends Phaser.Scene {
 
     this.anims.create({
       key: 'wizard',
-      frames: this.anims.generateFrameNumbers('wizard', {start: 0, end: 1}),
+      frames: this.anims.generateFrameNumbers('wizard', {start: 1, end: 2}),
       frameRate: 5,
       repeat: -1
     });
@@ -274,6 +274,13 @@ export default class Level01 extends Phaser.Scene {
       key: 'beam',
       frames: this.anims.generateFrameNumbers('beam', {start: 0, end: 2}),
       frameRate: 10,
+      repeat: -1
+    });
+
+    this.anims.create({
+      key: 'outOfBeam',
+      frames: this.anims.generateFrameNumbers('wizard', {start: 0, end: 0}),
+      frameRate: 5,
       repeat: -1
     });
 
@@ -329,6 +336,13 @@ export default class Level01 extends Phaser.Scene {
     onLoop: ()=>{
       this.countTween += 1;
       this.wizardAttack();
+      this.wizard.anims.play('outOfBeam', true);
+      this.time.addEvent({
+        delay: 2000,
+        callback: ()=>{
+          this.wizard.anims.play('wizard', true);
+        }
+      });
       }
     });
 
