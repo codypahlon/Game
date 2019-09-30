@@ -59,6 +59,11 @@ export default class Level01 extends Phaser.Scene {
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
+
+    //load sounds
+    this.load.audio("audio_explosion", ["assets/sounds/explosion.ogg", "assets/sounds/explosion.mp3"]);
+    this.load.audio("audio_collect", ["assets/sounds/pickup.ogg", "assets/sounds/pickup.mp3"]);
+    this.load.audio("music", ["assets/sounds/sci-fi_platformer12.ogg", "assets/sounds/sci-fi_platformer12.mp3"]);
   }
 
   create (data) {
@@ -361,6 +366,25 @@ export default class Level01 extends Phaser.Scene {
     });
     this.healthText.setScrollFactor(0);
 
+    //create sounds to be paused
+    this.explosionSound = this.sound.add("audio_explosion");
+    this.collectSound = this.sound.add("audio_collect");
+
+    //create background music
+    this.music = this.sound.add("music");
+
+    var musicConfig = {
+      mute: false,
+      volume: 0.5,
+      rate: 1,
+      detune: 0,
+      seek: 0,
+      loop: false,
+      delay: 0
+    }
+
+    this.music.play(musicConfig);
+
   }
 
   update (time, delta) {
@@ -507,6 +531,7 @@ collectCoins(player, coins) {
       //  Add and update the score
       this.score += 10;
       this.scoreText.setText("Score: " + this.score);
+      this.collectSound.play();
 }
 
 // Checking to see if player won
@@ -616,6 +641,7 @@ hitEnemy (fireball, enemy){
   enemy.health -= 1;
   this.score += 5;
   this.scoreText.setText("Score: " + this.score);
+  this.explosionSound.play();
   if (enemy.health == 0){
     this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
     this.explosion.setGravity(0, -1000);
