@@ -65,6 +65,7 @@ export default class Level01 extends Phaser.Scene {
     // Declare variables
     this.gameOver = true;
 
+    // Adding timer for the level
     this.timer = this.time.addEvent({
       delay: 0,
       callback: null,
@@ -115,7 +116,6 @@ export default class Level01 extends Phaser.Scene {
 
     // Add the dragon and all of his properities
     this.player = this.physics.add.sprite(100, 1000, 'dragon');
-    //this.player.body.enable = false;
     this.player.collideWorldBounds = true;
     this.player
       .setDisplaySize(80, 64)
@@ -128,15 +128,12 @@ export default class Level01 extends Phaser.Scene {
 
     // Adding in the fireball
     var fireball, fireballs, enemy, enemyGroup;
-    this.nextFire = 0;
-    this.fireRate = 200;
-    this.speed = 1000;
 
     this.fireballs = this.physics.add.group({
-      defaultKey: 'fireball',
-      //maxSize: 1
+      defaultKey: 'fireball'
     });
 
+    // Adding in the wizard's fireballs
     this.wizardFireballs = this.physics.add.group({
       defaultKey: 'beam'
     });
@@ -367,7 +364,7 @@ export default class Level01 extends Phaser.Scene {
   }
 
   update (time, delta) {
-    // Flipping wizard and attacking
+    // Flipping wizard
     if (this.wizard.x == 4410){
       this.wizard.flipX = true;
     } else if (this.wizard.x == 5000){
@@ -469,7 +466,7 @@ export default class Level01 extends Phaser.Scene {
     }
   }
 
-
+// Checking whether the player was hit
 gotHit(spriteA, spriteB){
   spriteA.health -= 25;
   if (spriteB.name == 'wizardFireball'){
@@ -491,6 +488,7 @@ gotHit(spriteA, spriteB){
   }
 }
 
+// Destroying blocks when player touches them
 destroyBlock(spriteA, spriteB){
   this.time.addEvent({
     delay: 500,
@@ -503,6 +501,7 @@ destroyBlock(spriteA, spriteB){
   }
 }
 
+// Collecting coins when player walks over them
 collectCoins(player, coins) {
       coins.disableBody(true, true);
       //  Add and update the score
@@ -510,15 +509,18 @@ collectCoins(player, coins) {
       this.scoreText.setText("Score: " + this.score);
 }
 
+// Checking to see if player won
 gameOverWin(spriteA, spriteB){
   this.gameOver = false;
   this.win = true;
 }
 
+// Flpping the sprite
 flipSprite(sprite) {
   sprite.flipX = !(sprite.flipX);
 }
 
+// Opening the chests
 checkOverlap(spriteA, spriteB) {
   // Destroying chest collider
   this.physics.world.colliders.getActive().find(function(i){
@@ -571,6 +573,7 @@ shoot(space) {
   fireball.setGravity(0, -1000);
 }
 
+// Having the wizard shoot fireballs
 wizardAttack(){
   var x, y, r;
   r = Math.random();
@@ -588,6 +591,7 @@ wizardAttack(){
   }
 }
 
+// Creating the fireballs
 enableWizardBall(x, y, size = 40, gravity = -1000, velocity = -600){
   var wizardFireball = this.wizardFireballs.get();
   wizardFireball.enableBody(true, x, y, true, true);
@@ -597,6 +601,7 @@ enableWizardBall(x, y, size = 40, gravity = -1000, velocity = -600){
   wizardFireball.anims.play('beam');
 }
 
+// Having the wizard drop fireballs from the sky
 wizardSkyAttack(){
   var r = Math.floor(Math.random() * 4);
   for (var i = 0; i < 5; i++){
