@@ -56,6 +56,11 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 25,
       frameWidth: 16.666
     });
+    this.load.spritesheet('heart', './assets/spriteSheets/heart.png', {
+      frameHeight: 35,
+      frameWidth: 140
+    });
+
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
@@ -84,13 +89,13 @@ export default class Level01 extends Phaser.Scene {
 
     // Add in the breakable blocks
     this.block = this.physics.add
-      .sprite(784, 1135, 'platform')
+      .sprite(784, 1137, 'platform')
       .setSize(96, 32)
       .setGravity(0, -1000)
       .setImmovable(true)
       .setDisplaySize(96, 32);
     this.block2 = this.physics.add
-      .sprite(784 + 32 * 13, 1135, 'platform')
+      .sprite(784 + 32 * 13, 1137, 'platform')
       .setSize(96, 32)
       .setGravity(0, -1000)
       .setImmovable(true)
@@ -347,19 +352,17 @@ export default class Level01 extends Phaser.Scene {
 
     //  The score
     this.score = 0;
-    this.scoreText = this.add.text(16, 16, "Score: 0", {
-      fontSize: "32px",
-      fill: "#000"
+    this.scoreText = this.add.text(20, 55, "Score: 0", {
+      fontSize: "32px"
     });
     this.scoreText.setScrollFactor(0);
 
     //Player health tracker
+    this.heart = this.physics.add.sprite(85, 40, 'heart');
+    this.heart.setGravity(0, -1000);
+    this.heart.setFrame(this.heart.frame);
+    this.heart.setScrollFactor(0, 0);
     this.player.health = 100;
-    this.healthText = this.add.text(16, 46, "Health: 100%", {
-      fontSize: "20px",
-      fill: "#000"
-    });
-    this.healthText.setScrollFactor(0);
 
   }
 
@@ -469,6 +472,7 @@ export default class Level01 extends Phaser.Scene {
 // Checking whether the player was hit
 gotHit(spriteA, spriteB){
   spriteA.health -= 25;
+  this.heart.setFrame((1 - (spriteA.health / 100)) * 4);
   if (spriteB.name == 'wizardFireball'){
     spriteB.destroy();
   } else {
@@ -480,7 +484,6 @@ gotHit(spriteA, spriteB){
       }
     });
   }
-  this.healthText.setText("Health: " + spriteA.health + "%");
 
   if (spriteA.health == 0){
     this.gameOver = false;
