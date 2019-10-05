@@ -169,6 +169,8 @@ export default class Level01 extends Phaser.Scene {
     this.viking2.setSize(70, 96);
     this.viking.health = 2;
     this.viking2.health = 2;
+    this.viking.name = 'viking';
+    this.viking2.name = 'viking';
 
     // Add in the wizard
     this.wizard = this.physics.add.sprite(5000, 1050, 'wizard');
@@ -184,6 +186,9 @@ export default class Level01 extends Phaser.Scene {
     this.dwarf.health = 1;
     this.dwarf2.health = 1;
     this.dwarf3.health = 1;
+    this.dwarf.name = 'dwarf';
+    this.dwarf2.name = 'dwarf';
+    this.dwarf3.name = 'dwarf';
 
     // Making enemy enemyGroup
     this.enemyGroup = this.physics.add.group();
@@ -199,6 +204,7 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
     this.physics.add.collider(platformCollisions, this.platforms);
+    this.physics.add.collider(enemies, [this.block, this.block2, this.block3]);
     this.physics.add.collider(this.player, this.block, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.block2, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.block3, this.destroyBlock, null, this);
@@ -228,7 +234,7 @@ export default class Level01 extends Phaser.Scene {
     this.anims.create({
       key: 'dwarfAttack',
       frames: this.anims.generateFrameNumbers('dwarfAxe', {start: 0, end: 2}),
-      frameRate: 1,
+      frameRate: 10,
       repeat: -1
     });
 
@@ -288,42 +294,8 @@ export default class Level01 extends Phaser.Scene {
       repeat: -1
     });
 
-    // Play animations
-    this.viking.anims.play("vikingwalk", true);
-    this.viking2.anims.play("vikingwalk", true);
-    this.dwarf.anims.play('dwarfAttack', true);
-    this.dwarf2.anims.play('dwarfAttack', true);
-    this.dwarf3.anims.play('dwarfAttack', true);
-    this.wizard.anims.play("wizard", true);
-
     // Add in the tweens
-    this.tweens.add({
-    targets: this.viking,
-    x: 1290,
-    duration: 1000,
-    ease: 'Linear',
-    loop: -1,
-    yoyo: true,
-    flipX: true
-    });
-
-    this.tweens.add({
-    targets: this.viking2,
-    x: 3850,
-    duration: 1000,
-    ease: 'Linear',
-    loop: -1,
-    yoyo: true,
-    flipX: true
-    });
-
-    this.tweens.add({
-      targets: [this.dwarf, this.dwarf2, this.dwarf3],
-      duration: 1000,
-      ease: 'Linear',
-      loop: true
-    });
-
+    this.wizard.anims.play('wizard', true);
     this.countTween = 0;
     this.wizardTween = this.tweens.add({
     paused: true,
@@ -427,6 +399,29 @@ export default class Level01 extends Phaser.Scene {
       }.bind(this)
     );
 
+    // Make the enemies track the player when you get close
+    this.enemyGroup.children.each(
+      function (b) {
+        if (b.active) {
+          var anim;
+          if (b.name == 'viking'){
+            anim = 'vikingwalk';
+          } else if (b.name == 'dwarf'){
+            anim = 'dwarfAttack';
+          }
+          if (this.player.x - b.x <= 400 && this.player.x - b.x > 0){
+            b.body.setVelocityX(150);
+            b.anims.play(anim, true);
+            b.flipX = true;
+          } else if (b.x - this.player.x <= 400 && b.x - this.player.x > 0){
+            b.body.setVelocityX(-150);
+            b.anims.play(anim, true);
+            b.flipX = false;
+          }
+        }
+      }.bind(this)
+    );
+
     //Changing scenes to gameover
     if (!this.gameOver) {
       if (this.times == 0) {
@@ -501,6 +496,7 @@ destroyBlock(spriteA, spriteB){
   });
   if (spriteB.name == 'bossBlock'){
     this.wizardTween.resume();
+
   }
 }
 
