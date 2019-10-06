@@ -20,6 +20,7 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 100,
       frameWidth: 121
     });
+    this.load.image('newBackground', './assets/sprites/bigbackground.png');
     this.load.image('spikes', './assets/sprites/spikes.png');
     this.load.image('tiles', './assets/tilesets/decent-tileset.png');
     this.load.image('platform', './assets/sprites/platform.png');
@@ -82,8 +83,10 @@ export default class Level01 extends Phaser.Scene {
     const map = this.make.tilemap({key: 'map'});
     const tileset = map.addTilesetImage('decent-tileset', 'tiles');
     this.platforms = map.createStaticLayer('Collision', tileset, 0, 0);
-    const sky = map.createStaticLayer('Background', tileset, 0, 0);
+    //const sky = map.createStaticLayer('Background', tileset, 0, 0);
+    const sky = this.add.sprite(5120/2, 1600/2, 'newBackground');
     sky.setDepth(-10);
+    sky.setScale(.5);
     this.platforms.setCollisionByExclusion(-1, true);
     this.TILE_BIAS = 32;
 
