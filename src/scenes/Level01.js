@@ -6,7 +6,7 @@ export default class Level01 extends Phaser.Scene {
 
   init (data) {
     // Initialization code goes here
-    if (data != null) {
+    if (data != null && !(data.tutorial)) {
       this.times = data.time;
     } else {
       this.times = 0;
@@ -135,14 +135,14 @@ export default class Level01 extends Phaser.Scene {
       .setOffset(30, 30);
     this.player.body.setMaxSpeed(10000);
     this.player.body.setMaxVelocity(5000);
-    this.player.body.setDragX(5000);
+    this.player.body.setDragX(10000);
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     // Adding in the fireball
     var fireball, fireballs, enemy, enemyGroup;
 
     this.fireballs = this.physics.add.group({
-      defaultKey: 'fireball'
+      defaultKey: 'fireball',
     });
 
     // Adding in the wizard's fireballs
@@ -231,11 +231,11 @@ export default class Level01 extends Phaser.Scene {
       repeat: -1
     });
 
-    this.anims.create({
+    this.whip = this.anims.create({
       key: 'dragontailwhip',
       frames: this.anims.generateFrameNumbers('dragontail', {start: 0, end: 5}),
-      frameRate: 10,
-      repeat: 0
+      duration: 500,
+      repeat: -1
     })
 
     this.anims.create({
@@ -465,6 +465,7 @@ export default class Level01 extends Phaser.Scene {
     //Create cursor keys and assign events
     var cursors = this.input.keyboard.createCursorKeys();
 
+
     if (cursors.left.isDown) {
       this.player.body.setVelocityX(-speed);
       this.player.anims.play("dragonwalk", true);
@@ -475,8 +476,9 @@ export default class Level01 extends Phaser.Scene {
       this.player.flipX = false;
     } else if (cursors.shift.isDown) {
       this.player.anims.play("dragontailwhip", true);
-    } else {
-      this.player.anims.play("idle", true);
+      this.melee();
+    } else if (!(cursors.shift.isDown) && !(cursors.right.isDown) && !(cursors.left.isDown)){
+      this.player.anims.play("idle", false);
     }
     if (this.jumpCount == 2 && this.player.body.onFloor()){
       this.jumpCount = 0;
@@ -526,6 +528,36 @@ collectCoins(player, coins) {
       this.score += 10;
       this.scoreText.setText("Score: " + this.score);
 }
+
+/*
+meleeAttack (rectangle, enemy){
+  this.physics.world.colliders.getActive().find(function(i){
+    return i.name == 'melee';
+  }).destroy();
+
+  rectangle.disableBody(true, true);
+  enemy.health -= 1
+  this.score += 5;
+  this.scoreText.setText("Score: " + this.score);
+  if (enemy.health == 0){
+    this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
+    this.explosion.setGravity(0, -1000);
+    this.explosion.setDisplaySize(50, 50);
+    enemy.disableBody(true, true);
+    this.explosion.anims.play('explosion', true);
+    this.time.addEvent({
+      delay: 200,
+      callback: ()=>{
+        this.explosion.disableBody(true, true);
+      }
+    });
+    if (enemy == this.wizard){
+      this.gameOverWin();
+    }
+  }
+};
+*/
+
 
 // Checking to see if player won
 gameOverWin(spriteA, spriteB){
@@ -589,6 +621,26 @@ shoot(space) {
   }
   fireball.setVelocity(flag * 1000, 0);
   fireball.setGravity(0, -1000);
+}
+
+melee(shift) {
+  var melee = this.fireballs.get();
+  melee.enableBody(true, this.player.x, this.player.y, true, true);
+  if (this.player.flipX == true){
+    var flag = -1;
+  } else {
+    var flag = 1;
+  }
+  melee.setGravity(0, -1000);
+  melee.setSize(120, 1);
+  melee.setAlpha(0);
+  this.time.addEvent({
+    delay: 200,
+    callback: ()=>{
+      melee.destroy();
+    }
+  })
+
 }
 
 // Having the wizard shoot fireballs
