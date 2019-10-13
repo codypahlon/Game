@@ -61,6 +61,10 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 35,
       frameWidth: 140
     });
+    this.load.spritesheet('dragontail', './assets/spriteSheets/dragontail.png', {
+      frameHeight: 120,
+      frameWidth: 110
+    });
 
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
@@ -226,6 +230,13 @@ export default class Level01 extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     });
+
+    this.anims.create({
+      key: 'dragontailwhip',
+      frames: this.anims.generateFrameNumbers('dragontail', {start: 0, end: 5}),
+      frameRate: 10,
+      repeat: 0
+    })
 
     this.anims.create({
       key: 'vikingwalk',
@@ -462,6 +473,8 @@ export default class Level01 extends Phaser.Scene {
       this.player.body.setVelocityX(speed);
       this.player.anims.play("dragonwalk", true);
       this.player.flipX = false;
+    } else if (cursors.shift.isDown) {
+      this.player.anims.play("dragontailwhip", true);
     } else {
       this.player.anims.play("idle", true);
     }
