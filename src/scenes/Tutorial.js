@@ -83,7 +83,7 @@ export default class Level01 extends Phaser.Scene {
     //Add tutorial pictures
     const up = this.add.sprite(600, 950, 'up');
     const leftright = this.add.sprite(120, 1000, 'leftright');
-    //const shift = this.add.sprite(100, 1000, 'shift');
+    const shift = this.add.sprite(1500, 1000, 'shift');
     const space = this.add.sprite(300, 975, 'space');
 
     // Make the map work
@@ -156,17 +156,21 @@ export default class Level01 extends Phaser.Scene {
     this.dwarf.health = 1;
     this.dwarf.name = 'dwarf';
 
+    // Add in the vikings
+    this.viking = this.physics.add.sprite(1500, 800, 'viking');
+    this.viking.health = 2;
+    this.viking.name = 'viking';
 
     // Making enemy enemyGroup
     this.enemyGroup = this.physics.add.group();
-    var enemies = [this.dwarf]
+    var enemies = [this.dwarf, this.viking]
 
     for (var i = 0; i < enemies.length; i++){
       this.enemyGroup.add(enemies[i]);
     }
 
     // All of the physics between all the sprites
-    var platformCollisions = [this.player, this.chest, this.dwarf];
+    var platformCollisions = [this.player, this.chest, this.dwarf, this.viking];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.collider(platformCollisions, this.platforms);
     this.physics.add.collider(enemies, [this.block, this.bossBlock]);
@@ -207,7 +211,14 @@ export default class Level01 extends Phaser.Scene {
       frames: this.anims.generateFrameNumbers('dragontail', {start: 0, end: 5}),
       frameRate: 10,
       repeat: 0
-    })
+    });
+
+    this.anims.create({
+      key: 'viking',
+      frames: this.anims.generateFrameNumbers('viking',{start: 0, end: 2}),
+      frameRate: 10,
+      repeat: -1
+    });
 
     this.anims.create({
       key: 'open',
@@ -270,8 +281,8 @@ export default class Level01 extends Phaser.Scene {
     // Make the enemies track the player when you get close
     this.enemyGroup.children.each(
       function (b) {
-        if (b.active) {
-          var anim = 'dwarfAttack';
+        if (b.active && b.name != 'dwarf') {
+          var anim = 'viking';
           if (this.player.x - b.x <= 400 && this.player.x - b.x > 10){
             b.body.setVelocityX(150);
             b.anims.play(anim, true);
