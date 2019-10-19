@@ -20,11 +20,11 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 100,
       frameWidth: 121
     });
-    this.load.image('newBackground', './assets/sprites/bigbackground.png');
+    //this.load.image('newBackground', './assets/sprites/bigbackground.png');
     this.load.image('spikes', './assets/sprites/spikes.png');
-    this.load.image('tiles', './assets/tilesets/decent-tileset.png');
+    this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
-    this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01.json');
+    this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01color.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
       frameHeight: 75,
       frameWidth: 100
@@ -85,25 +85,25 @@ export default class Level01 extends Phaser.Scene {
 
     // Make the map work
     const map = this.make.tilemap({key: 'map'});
-    const tileset = map.addTilesetImage('decent-tileset', 'tiles');
+    const tileset = map.addTilesetImage('tilesetcolor', 'tiles');
     this.platforms = map.createStaticLayer('Collision', tileset, 0, 0);
-    //const sky = map.createStaticLayer('Background', tileset, 0, 0);
-    const sky = this.add.sprite(5120/2, 1600/2, 'newBackground');
+    const sky = map.createStaticLayer('Background', tileset, 0, 0);
+    //const sky = this.add.sprite(5120/2, 1600/2, 'newBackground');
     sky.setDepth(-10);
-    sky.setScale(.5);
+    //sky.setScale(.5);
     this.platforms.setCollisionByExclusion(-1, true);
     this.TILE_BIAS = 32;
 
     // Add in the breakable blocks
     this.block = this.physics.add
-      .sprite(784, 1137, 'platform')
-      .setSize(96, 32)
+      .sprite(720, 1137, 'platform')
+      .setSize(99, 32)
       .setGravity(0, -1000)
       .setImmovable(true)
       .setDisplaySize(96, 32);
     this.block2 = this.physics.add
-      .sprite(784 + 32 * 13, 1137, 'platform')
-      .setSize(96, 32)
+      .sprite(1296, 1137, 'platform')
+      .setSize(99, 32)
       .setGravity(0, -1000)
       .setImmovable(true)
       .setDisplaySize(96, 32);
@@ -127,7 +127,7 @@ export default class Level01 extends Phaser.Scene {
     this.createSpikes(2033 + 32 * 44, 1007, 7, spikes);
 
     // Add the dragon and all of his properities
-    this.player = this.physics.add.sprite(100, 1000, 'dragon');
+    this.player = this.physics.add.sprite(170, 1000, 'dragon');
     this.player.collideWorldBounds = true;
     this.player
       .setDisplaySize(80, 64)
