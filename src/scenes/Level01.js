@@ -41,6 +41,10 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 50,
       frameWidth: 50
     });
+    this.load.spritesheet('dwarfShield', './assets/spriteSheets/dwarfShield.png', {
+      frameHeight: 50,
+      frameWidth: 60
+    });
     this.load.spritesheet('fireball', './assets/spriteSheets/fireball.png', {
       frameHeight: 25,
       frameWidth: 16.666
@@ -74,6 +78,7 @@ export default class Level01 extends Phaser.Scene {
   create (data) {
     // Declare variables
     this.gameOver = true;
+    this.meleeing = false;
 
     // Adding timer for the level
     this.timer = this.time.addEvent({
@@ -197,16 +202,21 @@ export default class Level01 extends Phaser.Scene {
     this.dwarf2.name = 'dwarf';
     this.dwarf3.name = 'dwarf';
 
+    //Add in shield dwarves
+    this.shieldDwarf = this.physics.add.sprite(1970, 900, 'dwarfShield');
+    this.shieldDwarf.health = 1;
+    this.shieldDwarf.name = 'shieldDwarf';
+
     // Making enemy enemyGroup
     this.enemyGroup = this.physics.add.group();
-    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2];
+    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2, this.shieldDwarf];
 
     for (var i = 0; i < enemies.length; i++){
       this.enemyGroup.add(enemies[i]);
     }
 
     // All of the physics between all the sprites
-    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3];
+    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
@@ -251,7 +261,18 @@ export default class Level01 extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     });
-
+    this.anims.create({
+      key: 'shieldDwarfIdle',
+      frames: this.anims.generateFrameNumbers('dwarfShield', {start: 0, end: 0}),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.anims.create({
+      key: 'shieldDwarfBlock',
+      frames: this.anims.generateFrameNumbers('dwarfShield', {start: 2, end: 2}),
+      frameRate: 10,
+      repeat: -1
+    });
     this.anims.create({
       key: 'idle',
       frames: this.anims.generateFrameNumbers('dragon', {start: 0, end: 0}),
@@ -418,26 +439,29 @@ export default class Level01 extends Phaser.Scene {
       function (b) {
         if (b.active) {
           var anim;
-          if (b.name == 'viking'){
-            anim = 'vikingwalk';
-          } else if (b.name == 'dwarf'){
-            anim = 'dwarfAttack';
-          }
-          if (this.player.x - b.x <= 400 && this.player.x - b.x > 10){
-            b.body.setVelocityX(150);
-            b.anims.play(anim, true);
-            b.flipX = true;
-          } else if (b.x - this.player.x <= 400 && b.x - this.player.x > 10){
-            b.body.setVelocityX(-150);
-            b.anims.play(anim, true);
-            b.flipX = false;
-          } else {
-            b.body.setVelocityX(0);
-            b.anims.play(anim, false);
+          if (b.name != 'shieldDwarf'){
+            if (b.name == 'viking'){
+              anim = 'vikingwalk';
+            } else if (b.name == 'dwarf'){
+              anim = 'dwarfAttack';
+            }
+            if (this.player.x - b.x <= 400 && this.player.x - b.x > 10){
+              b.body.setVelocityX(150);
+              b.anims.play(anim, true);
+              b.flipX = true;
+            } else if (b.x - this.player.x <= 400 && b.x - this.player.x > 10){
+              b.body.setVelocityX(-150);
+              b.anims.play(anim, true);
+              b.flipX = false;
+            } else {
+              b.body.setVelocityX(0);
+              b.anims.play(anim, false);
+            }
           }
         }
       }.bind(this)
     );
+
 
     //Changing scenes to gameover
     if (!this.gameOver) {
@@ -476,6 +500,7 @@ export default class Level01 extends Phaser.Scene {
       this.player.flipX = false;
     } else if (cursors.shift.isDown) {
       this.player.anims.play("dragontailwhip", true);
+      this.meleeing = true;
       this.melee();
     } else if (!(cursors.shift.isDown) && !(cursors.right.isDown) && !(cursors.left.isDown)){
       this.player.anims.play("idle", false);
@@ -521,6 +546,17 @@ destroyBlock(spriteA, spriteB){
   }
 }
 
+// Reflecting the bullet
+reflectFireball(fireball){
+  var velocity = fireball.body.velocity.x;
+  fireball.body.velocity.x = -velocity;
+  this.physics.add.collider(this.player, fireball, ()=>{
+    fireball.name = 'wizardFireball';
+    this.gotHit(this.player, fireball);
+    fireball.destroy();
+  }, null, this);
+}
+
 // Collecting coins when player walks over them
 collectCoins(player, coins) {
       coins.disableBody(true, true);
@@ -528,36 +564,6 @@ collectCoins(player, coins) {
       this.score += 10;
       this.scoreText.setText("Score: " + this.score);
 }
-
-/*
-meleeAttack (rectangle, enemy){
-  this.physics.world.colliders.getActive().find(function(i){
-    return i.name == 'melee';
-  }).destroy();
-
-  rectangle.disableBody(true, true);
-  enemy.health -= 1
-  this.score += 5;
-  this.scoreText.setText("Score: " + this.score);
-  if (enemy.health == 0){
-    this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
-    this.explosion.setGravity(0, -1000);
-    this.explosion.setDisplaySize(50, 50);
-    enemy.disableBody(true, true);
-    this.explosion.anims.play('explosion', true);
-    this.time.addEvent({
-      delay: 200,
-      callback: ()=>{
-        this.explosion.disableBody(true, true);
-      }
-    });
-    if (enemy == this.wizard){
-      this.gameOverWin();
-    }
-  }
-};
-*/
-
 
 // Checking to see if player won
 gameOverWin(spriteA, spriteB){
@@ -638,9 +644,9 @@ melee(shift) {
     delay: 200,
     callback: ()=>{
       melee.destroy();
+      this.meleeing = false;
     }
   })
-
 }
 
 // Having the wizard shoot fireballs
@@ -683,9 +689,22 @@ wizardSkyAttack(){
 
 // Checking to see whether you have hit an enemy
 hitEnemy (fireball, enemy){
-  enemy.health -= 1;
-  this.score += 5;
-  this.scoreText.setText("Score: " + this.score);
+  if (enemy.name != 'shieldDwarf'){
+    enemy.health -= 1;
+    this.score += 5;
+    this.scoreText.setText("Score: " + this.score);
+  } else if (this.meleeing == true){
+    enemy.health -= 1;
+    this.score += 5;
+    this.scoreText.setText('Score: ' + this.score);
+  } else {
+    enemy.anims.play('shieldDwarfBlock');
+    this.time.addEvent({
+      delay: 200,
+      callback: ()=>{enemy.anims.play('shieldDwarfIdle');}
+    })
+  }
+
   if (enemy.health == 0){
     this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
     this.explosion.setGravity(0, -1000);
@@ -702,7 +721,11 @@ hitEnemy (fireball, enemy){
       this.gameOverWin();
     }
   }
-  fireball.disableBody(true, true);
+  if (enemy.name != 'shieldDwarf' && this.meleeing == false){
+    fireball.disableBody(true, true);
+  } else if (enemy.name == 'shieldDwarf'){
+    this.reflectFireball(fireball);
+  }
 }
 
 // Single jumping
