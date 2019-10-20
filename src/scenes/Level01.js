@@ -22,6 +22,7 @@ export default class Level01 extends Phaser.Scene {
     });
     //this.load.image('newBackground', './assets/sprites/bigbackground.png');
     this.load.image('spikes', './assets/sprites/spikes.png');
+    this.load.image('spikesFlipped', './assets/sprites/spikesFlipped.png');
     this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
     this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01color.json');
@@ -88,6 +89,7 @@ export default class Level01 extends Phaser.Scene {
     this.gameOver = true;
     this.meleeing = false;
     this.initialized = false;
+    this.bowDwarfDead = 0;
 
     // Adding timer for the level
     this.timer = this.time.addEvent({
@@ -102,9 +104,9 @@ export default class Level01 extends Phaser.Scene {
     const tileset = map.addTilesetImage('tilesetcolor', 'tiles');
     this.platforms = map.createStaticLayer('Collision', tileset, 0, 0);
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
-    //const sky = this.add.sprite(5120/2, 1600/2, 'newBackground');
+    this.lava = map.createStaticLayer('Lava', tileset, 0, 0);
     sky.setDepth(-10);
-    //sky.setScale(.5);
+    this.lava.setDepth(10);
     this.platforms.setCollisionByExclusion(-1, true);
     this.TILE_BIAS = 32;
 
@@ -122,7 +124,7 @@ export default class Level01 extends Phaser.Scene {
       .setImmovable(true)
       .setDisplaySize(96, 32);
     this.block3 = this.physics.add
-      .sprite(4320, 1088, 'platform')
+      .sprite(8800, 1088, 'platform')
       .setSize(100, 25)
       .setGravity(0, -1000)
       .setImmovable(true)
@@ -131,6 +133,9 @@ export default class Level01 extends Phaser.Scene {
 
     // Create all of the spikes
     var spikes = this.physics.add.staticGroup();
+    var spikesFlipped = this.physics.add.staticGroup();
+    spikesFlipped.name = 'spikesFlipped';
+    spikes.name = 'spikes';
     this.createSpikes(2033, 1007, 3, spikes);
     this.createSpikes(2033 + 32 * 7, 1007, 2, spikes);
     this.createSpikes(2033 + 32 * 12, 1007, 3, spikes);
@@ -139,9 +144,16 @@ export default class Level01 extends Phaser.Scene {
     this.createSpikes(2033 + 32 * 28, 1007, 2, spikes);
     this.createSpikes(2033 + 32 * 39, 1007, 3, spikes);
     this.createSpikes(2033 + 32 * 44, 1007, 7, spikes);
+    this.createSpikes(7696, 1107, 3, spikes);
+    this.createSpikes(7696 + 32 * 6, 1107, 3, spikes);
+    this.createSpikes(7696 + 32 * 15, 1107, 3, spikes);
+    this.createSpikes(5328, 688, 8, spikesFlipped);
+    this.createSpikes(7696 + 32 * 6, 336, 4, spikesFlipped);
+    this.createSpikes(7696 + 32 * 10, 336 - 32, 2, spikesFlipped);
+    this.createSpikes(7696 + 32 * 12, 336 - 32* 2, 2, spikesFlipped);
 
     // Add the dragon and all of his properities
-    this.player = this.physics.add.sprite(170, 1000, 'dragon');
+    this.player = this.physics.add.sprite(5500, 600, 'dragon');
     this.player.collideWorldBounds = true;
     this.player
       .setDisplaySize(80, 64)
@@ -199,7 +211,7 @@ export default class Level01 extends Phaser.Scene {
     this.viking2.name = 'viking';
 
     // Add in the wizard
-    this.wizard = this.physics.add.sprite(5000, 1050, 'wizard');
+    this.wizard = this.physics.add.sprite(9480, 1050, 'wizard');
     this.wizard.setScale(1.2);
     this.wizard.setImmovable(true);
     this.wizard.body.enable = false;
@@ -223,19 +235,25 @@ export default class Level01 extends Phaser.Scene {
 
     //Add in the bow dwarves
     this.bowDwarf = this.physics.add.sprite(1500, 700, 'dwarfBow');
+    this.bowDwarf2 = this.physics.add.sprite(4360, 700, 'dwarfBow');
+    this.bowDwarf3 = this.physics.add.sprite(4840, 500, 'dwarfBow');
     this.bowDwarf.health = 1;
+    this.bowDwarf2.health = 1;
+    this.bowDwarf3.health = 1;
     this.bowDwarf.name = 'bowDwarf';
+    this.bowDwarf2.name = 'bowDwarf';
+    this.bowDwarf3.name = 'bowDwarf';
 
     // Making enemy enemyGroup
     this.enemyGroup = this.physics.add.group();
-    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2, this.shieldDwarf, this.bowDwarf];
+    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
 
     for (var i = 0; i < enemies.length; i++){
       this.enemyGroup.add(enemies[i]);
     }
 
     // All of the physics between all the sprites
-    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf];
+    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
@@ -247,6 +265,7 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
+    this.physics.add.collider(this.player, spikesFlipped, this.gotHit, null, this);
 
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
@@ -362,7 +381,7 @@ export default class Level01 extends Phaser.Scene {
     targets: this.wizard,
     delay: 2000,
     props: {
-      x: 4410,
+      x: 8890,
       y: {value: 900, duration: 1500, ease: 'Linear'}
     },
     duration: 2000,
@@ -384,14 +403,19 @@ export default class Level01 extends Phaser.Scene {
 
     this.bowDwarfTween = this.tweens.add({
       paused: true,
-      targets: this.bowDwarf,
+      targets: [this.bowDwarf, this.bowDwarf2, this.bowDwarf3],
       delay: 200,
       duration: 100,
       loop: -1,
       loopDelay: 1000,
       onLoop: ()=>{
-        this.bowDwarf.anims.play('bowDwarfShoot', true);
-        this.shootArrow(this.bowDwarf, this.player);
+        var targets = this.bowDwarfTween.targets;
+        for (var i = 0; i < targets.length; i++){
+          if (Math.abs(targets[i].x - this.player.x) < 500){
+            targets[i].anims.play('bowDwarfShoot', true);
+            this.shootArrow(targets[i], this.player);
+          }
+        }
       }
     })
 
@@ -413,14 +437,14 @@ export default class Level01 extends Phaser.Scene {
 
   update (time, delta) {
     // Flipping wizard
-    if (this.wizard.x == 4410){
+    if (this.wizard.x == 8890){
       this.wizard.flipX = true;
-    } else if (this.wizard.x == 5000){
+    } else if (this.wizard.x == 9480){
       this.wizard.flipX = false;
     }
 
     // Attacking from the sky
-    if (this.wizard.x == 5000 && this.countTween == 3){
+    if (this.wizard.x == 9480 && this.countTween == 3){
       this.wizardSkyAttack();
       this.countTween = 0;
       this.wizardTween.pause();
@@ -457,7 +481,8 @@ export default class Level01 extends Phaser.Scene {
           b.name = 'wizardFireball';
           this.physics.add.overlap(this.player, b, this.gotHit, null, this);
           this.physics.add.collider(b, this.platforms, function destroy() {b.destroy();}, null, this);
-          if (b.x > this.bowDwarf.x + 500 || b.x < this.bowDwarf.x - 500){
+          if (Math.abs(this.player.x - b.x) > 500){
+            console.log('working');
             b.destroy();
           }
         }
@@ -673,7 +698,7 @@ checkOverlap(spriteA, spriteB) {
 createSpikes(x, y, num, spikes) {
   for (var i = 0; i < num; i++){
   spikes
-    .create(x + 32 * i, y, 'spikes')
+    .create(x + 32 * i, y, spikes.name)
     .setSize(32, 32)
     .setDisplaySize(32, 32);
   }
@@ -717,7 +742,7 @@ melee(shift) {
 wizardAttack(){
   var x, y, r;
   r = Math.random();
-  x = 5000;
+  x = 9480;
   y = this.wizard.y;
   if (r <= 0.33){
     this.enableWizardBall(x, y + 40);
@@ -746,7 +771,7 @@ wizardSkyAttack(){
   var r = Math.floor(Math.random() * 4);
   for (var i = 0; i < 5; i++){
     if (i != r){
-      this.enableWizardBall(4469 + 118 * i, 600, 118, -800,  0);
+      this.enableWizardBall(4469 + 118 * i + 4480, 600, 118, -800,  0);
     }
   }
 }
@@ -784,7 +809,14 @@ hitEnemy (fireball, enemy){
     if (enemy == this.wizard){
       this.gameOverWin();
     } else if (enemy.name == 'bowDwarf'){
-      this.bowDwarfTween.pause();
+      var len = this.bowDwarfTween.targets.length
+      var newLst = [];
+      for (var i = 0; i < len; i++){
+        if (this.bowDwarfTween.targets[i] != enemy){
+          newLst.push(this.bowDwarfTween.targets[i]);
+        }
+      }
+      this.bowDwarfTween.targets = newLst;
     }
   }
   if (enemy.name != 'shieldDwarf' && this.meleeing == false){
