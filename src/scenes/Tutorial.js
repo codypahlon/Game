@@ -20,13 +20,13 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 100,
       frameWidth: 121
     });
-    this.load.image('newBackground', './assets/sprites/bigbackground.png');
+    //this.load.image('newBackground', './assets/sprites/bigbackground.png');
     this.load.image('spikes', './assets/sprites/spikes.png');
     this.load.image('leftright', './assets/sprites/leftright.png');
     this.load.image('shift', './assets/sprites/shift.png');
     this.load.image('space', './assets/sprites/space.png');
     this.load.image('up', './assets/sprites/up.png');
-    this.load.image('tiles', './assets/tilesets/tileset3.png');
+    this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
     this.load.tilemapTiledJSON('tutorialMap', './assets/tilemaps/Tutorial.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
@@ -81,20 +81,25 @@ export default class Level01 extends Phaser.Scene {
     this.gameOver = true
 
     //Add tutorial pictures
-    const up = this.add.sprite(600, 950, 'up');
-    const leftright = this.add.sprite(120, 1000, 'leftright');
+    const up = this.add.sprite(680, 840, 'up');
+    up.setScale(1.4);
+    const leftright = this.add.sprite(180, 1000, 'leftright');
+    leftright.setScale(.8);
     const shift = this.add.sprite(1500, 1000, 'shift');
-    const space = this.add.sprite(300, 975, 'space');
+    shift.setScale(1.4);
+    const space = this.add.sprite(460, 975, 'space');
+    space.setScale(1.4);
 
     // Make the map work
     const map = this.make.tilemap({key: 'tutorialMap'});
-    const tileset = map.addTilesetImage('tileset3', 'tiles');
+    const tileset = map.addTilesetImage('tilesetcolor', 'tiles');
     this.platforms = map.createStaticLayer('Collision', tileset, 0, 0);
     this.lava = map.createStaticLayer('Lava', tileset, 0, 0);
     this.door = map.createStaticLayer('Door', tileset, 0, 0);
-    const sky = this.add.sprite(5120/2, 1600/2, 'newBackground');
+    //const sky = this.add.sprite(5120/2, 1600/2, 'newBackground');
+    const sky = map.createStaticLayer('Background', tileset, 0, 0);
     sky.setDepth(-10);
-    sky.setScale(.5);
+    //sky.setScale(.5);
     this.lava.setCollisionByExclusion(-1, true);
     this.lava.setDepth(10);
     this.door.setCollisionByExclusion(-1, true);

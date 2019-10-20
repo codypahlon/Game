@@ -15,7 +15,7 @@ export default class GameOverScene extends Phaser.Scene {
   }
 
   preload () {
-    this.load.image('tiles', './assets/tilesets/decent-tileset.png');
+    this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.tilemapTiledJSON('map1', './assets/tilemaps/GameOverScene.json');
 
     // Declare variables for center of the scene
@@ -26,7 +26,7 @@ export default class GameOverScene extends Phaser.Scene {
   create (data) {
     //Load in Background
     const map = this.make.tilemap({key: 'map1'});
-    const tileset = map.addTilesetImage('decent-tileset', 'tiles');
+    const tileset = map.addTilesetImage('tilesetcolor', 'tiles');
     const sky = map.createStaticLayer('bg', tileset, 0, 0);
     sky.setDepth(-10);
     this.TILE_BIAS = 32;
