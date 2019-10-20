@@ -69,6 +69,14 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 120,
       frameWidth: 110
     });
+    this.load.spritesheet('dwarfBow', './assets/spriteSheets/dwarfBow.png', {
+      frameHeight: 51,
+      frameWidth: 86
+    });
+    this.load.spritesheet('arrow', './assets/spriteSheets/arrow.png', {
+      frameHeight: 10,
+      frameWidth: 45
+    });
 
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
@@ -79,6 +87,7 @@ export default class Level01 extends Phaser.Scene {
     // Declare variables
     this.gameOver = true;
     this.meleeing = false;
+    this.initialized = false;
 
     // Adding timer for the level
     this.timer = this.time.addEvent({
@@ -155,6 +164,11 @@ export default class Level01 extends Phaser.Scene {
       defaultKey: 'beam'
     });
 
+    // Adding in the arrows for bowDwarf
+    this.arrows = this.physics.add.group({
+      defaultKey: 'arrow'
+    });
+
     // Add event listener for shoot
     this.input.keyboard.on('keydown_SPACE', this.shoot, this);
 
@@ -207,16 +221,21 @@ export default class Level01 extends Phaser.Scene {
     this.shieldDwarf.health = 1;
     this.shieldDwarf.name = 'shieldDwarf';
 
+    //Add in the bow dwarves
+    this.bowDwarf = this.physics.add.sprite(1500, 700, 'dwarfBow');
+    this.bowDwarf.health = 1;
+    this.bowDwarf.name = 'bowDwarf';
+
     // Making enemy enemyGroup
     this.enemyGroup = this.physics.add.group();
-    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2, this.shieldDwarf];
+    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2, this.shieldDwarf, this.bowDwarf];
 
     for (var i = 0; i < enemies.length; i++){
       this.enemyGroup.add(enemies[i]);
     }
 
     // All of the physics between all the sprites
-    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf];
+    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
@@ -328,6 +347,12 @@ export default class Level01 extends Phaser.Scene {
       frameRate: 5,
       repeat: -1
     });
+    this.anims.create({
+      key: 'bowDwarfShoot',
+      frames: this.anims.generateFrameNumbers('dwarfBow', {start: 0, end: 1}),
+      frameRate: 10,
+      repeat: 0
+    });
 
     // Add in the tweens
     this.wizard.anims.play('wizard', true);
@@ -356,6 +381,19 @@ export default class Level01 extends Phaser.Scene {
       });
       }
     });
+
+    this.bowDwarfTween = this.tweens.add({
+      paused: true,
+      targets: this.bowDwarf,
+      delay: 200,
+      duration: 100,
+      loop: -1,
+      loopDelay: 1000,
+      onLoop: ()=>{
+        this.bowDwarf.anims.play('bowDwarfShoot', true);
+        this.shootArrow(this.bowDwarf, this.player);
+      }
+    })
 
     //  The score
     this.score = 0;
@@ -398,15 +436,6 @@ export default class Level01 extends Phaser.Scene {
       });
     }
 
-    // Win condition
-    this.fireballs.children.each(
-      function (b) {
-        if (b.active) {
-          this.physics.add.overlap(b, this.wizard, this.hitEnemy, null, this);
-        }
-      }.bind(this)
-    );
-
     // Add colliders to wizard wizardFireballs
     this.wizardFireballs.children.each(
       function (b) {
@@ -421,10 +450,25 @@ export default class Level01 extends Phaser.Scene {
       }.bind(this)
     );
 
+    // Add colliders to arrows
+    this.arrows.children.each(
+      function (b) {
+        if (b.active) {
+          b.name = 'wizardFireball';
+          this.physics.add.overlap(this.player, b, this.gotHit, null, this);
+          this.physics.add.collider(b, this.platforms, function destroy() {b.destroy();}, null, this);
+          if (b.x > this.bowDwarf.x + 500 || b.x < this.bowDwarf.x - 500){
+            b.destroy();
+          }
+        }
+      }.bind(this)
+    );
+
     // Add colliders to fireballs
     this.fireballs.children.each(
       function (b) {
         if (b.active) {
+          this.physics.add.overlap(b, this.wizard, this.hitEnemy, null, this);
           this.physics.add.overlap(b, this.enemyGroup, this.hitEnemy, null, this);
           this.physics.add.collider(b, this.platforms, function destroy(){b.destroy();}, null, this);
           if (b.x > this.player.x + 500){
@@ -439,7 +483,7 @@ export default class Level01 extends Phaser.Scene {
       function (b) {
         if (b.active) {
           var anim;
-          if (b.name != 'shieldDwarf'){
+          if (b.name != 'shieldDwarf' && b.name != 'bowDwarf'){
             if (b.name == 'viking'){
               anim = 'vikingwalk';
             } else if (b.name == 'dwarf'){
@@ -457,6 +501,9 @@ export default class Level01 extends Phaser.Scene {
               b.body.setVelocityX(0);
               b.anims.play(anim, false);
             }
+          } else if (b.name == 'bowDwarf' && this.initialized == false){
+            this.initialized = true;
+            this.bowDwarfTween.resume();
           }
         }
       }.bind(this)
@@ -530,6 +577,23 @@ gotHit(spriteA, spriteB){
     this.gameOver = false;
     this.win = false;
   }
+}
+
+// Having the archer dwarves shoot arrows
+shootArrow(bowDwarf, player){
+  var arrow = this.arrows.get();
+  var betweenPoints = Phaser.Math.Angle.BetweenPoints;
+  var angle = betweenPoints(bowDwarf, player);
+  var velocityFromRotation = this.physics.velocityFromRotation;
+  //Create a variable called velocity from a Vector2
+  var velocity = new Phaser.Math.Vector2();
+  velocityFromRotation(angle, 200, velocity);
+  //Get the bullet group
+  arrow.setAngle(Phaser.Math.RAD_TO_DEG * angle + 180);
+  arrow
+    .enableBody(true, bowDwarf.x, bowDwarf.y, true, true)
+    .setVelocity(velocity.x, velocity.y)
+    .setGravity(0, -1000);
 }
 
 // Destroying blocks when player touches them
@@ -719,6 +783,8 @@ hitEnemy (fireball, enemy){
     });
     if (enemy == this.wizard){
       this.gameOverWin();
+    } else if (enemy.name == 'bowDwarf'){
+      this.bowDwarfTween.pause();
     }
   }
   if (enemy.name != 'shieldDwarf' && this.meleeing == false){
