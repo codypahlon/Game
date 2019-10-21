@@ -90,6 +90,7 @@ export default class Level01 extends Phaser.Scene {
     this.meleeing = false;
     this.initialized = false;
     this.bowDwarfDead = 0;
+    this.inLava = false;
 
     // Adding timer for the level
     this.timer = this.time.addEvent({
@@ -106,7 +107,8 @@ export default class Level01 extends Phaser.Scene {
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
     this.lava = map.createStaticLayer('Lava', tileset, 0, 0);
     sky.setDepth(-10);
-    this.lava.setDepth(10);
+    this.lava.name = 'lava';
+    this.lava.setCollisionByExclusion(-1, true);
     this.platforms.setCollisionByExclusion(-1, true);
     this.TILE_BIAS = 32;
 
@@ -153,12 +155,13 @@ export default class Level01 extends Phaser.Scene {
     this.createSpikes(7696 + 32 * 12, 336 - 32* 2, 2, spikesFlipped);
 
     // Add the dragon and all of his properities
-    this.player = this.physics.add.sprite(5500, 600, 'dragon');
+    this.player = this.physics.add.sprite(150, 1000, 'dragon');
     this.player.collideWorldBounds = true;
     this.player
       .setDisplaySize(80, 64)
       .setSize(80, 64)
       .setOffset(30, 30);
+    this.player.name = 'dragon';
     this.player.body.setMaxSpeed(10000);
     this.player.body.setMaxVelocity(5000);
     this.player.body.setDragX(10000);
@@ -253,11 +256,15 @@ export default class Level01 extends Phaser.Scene {
     }
 
     // All of the physics between all the sprites
-    var platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
+    this.platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
-    this.physics.add.collider(platformCollisions, this.platforms);
+    this.physics.add.collider(this.platformCollisions, this.platforms);
+    this.physics.add.collider(this.player, this.lava, ()=>{
+      this.inLava = true;
+      this.gotHit(this.player, this.lava);
+    }, null, this);
     this.physics.add.collider(enemies, [this.block, this.block2, this.block3]);
     this.physics.add.collider(this.player, this.block, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.block2, this.destroyBlock, null, this);
@@ -411,8 +418,13 @@ export default class Level01 extends Phaser.Scene {
       onLoop: ()=>{
         var targets = this.bowDwarfTween.targets;
         for (var i = 0; i < targets.length; i++){
-          if (Math.abs(targets[i].x - this.player.x) < 500){
+          if (targets[i].x - this.player.x < 500 && targets[i].x - this.player.x > 0){
             targets[i].anims.play('bowDwarfShoot', true);
+            targets[i].flipX = false;
+            this.shootArrow(targets[i], this.player);
+          } else if (this.player.x - targets[i].x < 500 && this.player.x - targets[i].x > 0){
+            targets[i].anims.play('bowDwarfShoot', true);
+            targets[i].flipX = true;
             this.shootArrow(targets[i], this.player);
           }
         }
@@ -482,7 +494,6 @@ export default class Level01 extends Phaser.Scene {
           this.physics.add.overlap(this.player, b, this.gotHit, null, this);
           this.physics.add.collider(b, this.platforms, function destroy() {b.destroy();}, null, this);
           if (Math.abs(this.player.x - b.x) > 500){
-            console.log('working');
             b.destroy();
           }
         }
@@ -502,6 +513,10 @@ export default class Level01 extends Phaser.Scene {
         }
       }.bind(this)
     );
+
+    if (this.fireballs.children.entries.length == 0){
+      this.meleeing = false;
+    };
 
     // Make the enemies track the player when you get close
     this.enemyGroup.children.each(
@@ -584,23 +599,40 @@ export default class Level01 extends Phaser.Scene {
 
 // Checking whether the player was hit
 gotHit(spriteA, spriteB){
-  spriteA.health -= 25;
-  this.heart.setFrame((1 - (spriteA.health / 100)) * 4);
-  if (spriteB.name == 'wizardFireball'){
-    spriteB.destroy();
-  } else {
-    spriteB.body.enable = false;
-    this.time.addEvent({
-      delay: 500,
-      callback: ()=>{
-        spriteB.body.enable = true;
-      }
-    });
-  }
-
-  if (spriteA.health == 0){
+  if (this.inLava){
+    spriteA.health = 0;
+    spriteA.destroy();
     this.gameOver = false;
     this.win = false;
+  } else {
+    spriteA.health -= 25;
+    this.heart.setFrame((1 - (spriteA.health / 100)) * 4);
+    if (spriteB.name == 'wizardFireball'){
+      spriteB.destroy();
+    } else {
+      if (this.meleeing == false){
+        spriteB.body.enable = false;
+        this.time.addEvent({
+          delay: 500,
+          callback: ()=>{
+            spriteB.body.enable = true;
+          }
+        });
+      } else if (this.meleeing == true){
+        spriteA.body.enable = false;
+        this.time.addEvent({
+          delay: 200,
+          callback: ()=>{
+            spriteA.body.enable = true;
+          }
+        })
+      }
+    }
+
+    if (spriteA.health == 0){
+      this.gameOver = false;
+      this.win = false;
+    }
   }
 }
 
@@ -637,13 +669,15 @@ destroyBlock(spriteA, spriteB){
 
 // Reflecting the bullet
 reflectFireball(fireball){
-  var velocity = fireball.body.velocity.x;
-  fireball.body.velocity.x = -velocity;
-  this.physics.add.collider(this.player, fireball, ()=>{
-    fireball.name = 'wizardFireball';
-    this.gotHit(this.player, fireball);
-    fireball.destroy();
-  }, null, this);
+  if (this.meleeing == false){
+    var velocity = fireball.body.velocity.x;
+    fireball.body.velocity.x = -velocity;
+    this.physics.add.collider(this.player, fireball, ()=>{
+      fireball.name = 'wizardFireball';
+      this.gotHit(this.player, fireball);
+      fireball.destroy();
+    }, null, this);
+  }
 }
 
 // Collecting coins when player walks over them
@@ -730,12 +764,11 @@ melee(shift) {
   melee.setSize(120, 1);
   melee.setAlpha(0);
   this.time.addEvent({
-    delay: 200,
+    delay: 500,
     callback: ()=>{
       melee.destroy();
-      this.meleeing = false;
     }
-  })
+  });
 }
 
 // Having the wizard shoot fireballs
