@@ -107,6 +107,8 @@ export default class Level01 extends Phaser.Scene {
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
     this.lava = map.createStaticLayer('Lava', tileset, 0, 0);
     sky.setDepth(-10);
+    this.door1 = map.createStaticLayer('Door1', tileset, 0, 0);
+    this.door2 = map.createStaticLayer('Door2', tileset, 0, 0);
     this.lava.name = 'lava';
     this.lava.setCollisionByExclusion(-1, true);
     this.platforms.setCollisionByExclusion(-1, true);
