@@ -25,6 +25,7 @@ export default class Level01 extends Phaser.Scene {
     this.load.image('spikesFlipped', './assets/sprites/spikesFlipped.png');
     this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
+    this.load.image('swingingAxe', './assets/sprites/swingingAxe.png');
     this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01color.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
       frameHeight: 75,
@@ -111,6 +112,14 @@ export default class Level01 extends Phaser.Scene {
     this.lava.setCollisionByExclusion(-1, true);
     this.platforms.setCollisionByExclusion(-1, true);
     this.TILE_BIAS = 32;
+
+    // Add swinging axe
+    this.swingingAxe = this.physics.add
+      .sprite(6600, 535, 'swingingAxe')
+      .setSize(250, 375)
+      .setDisplaySize(250, 375)
+      .setGravity(0, -1000);
+    this.swingingAxe.flipY = true;
 
     // Add in the breakable blocks
     this.block = this.physics.add
@@ -430,6 +439,22 @@ export default class Level01 extends Phaser.Scene {
         }
       }
     })
+
+    this.swingingAxeAngle = 0;
+    this.swingingAxe.setOrigin(0.5, 0);
+    this.swingingAxeTween = this.tweens.add({
+      targets: this.swingingAxe,
+      duration: 1000,
+      loop: -1,
+      onLoop: ()=>{
+        if (this.swingingAxeAngle < 90){
+          this.swingingAxeAngle += 1;
+        } else if (this.swingingAxe > 90){
+          this.swingingAxeAngle -= 1;
+        }
+        this.swingingAxe.setAngle(this.swingingAxeAngle);
+      }
+    });
 
     //  The score
     this.score = 0;
