@@ -5,6 +5,7 @@ import Level03 from './scenes/Level03.js';
 import Tutorial from './scenes/Tutorial.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import Key from './scenes/Key.js';
+import Start from './scenes/Start.js';
 import Config from './config/config.js';
 
 class Game extends Phaser.Game {
@@ -15,12 +16,8 @@ class Game extends Phaser.Game {
     this.scene.add('Level02', Level02);
     this.scene.add('Level03', Level03);
     this.scene.add('GameOverScene', GameOverScene);
-<<<<<<< HEAD
-    this.scene.start('Level01');
-=======
-    this.scene.add('Key', Key);
-    this.scene.start('Key');
->>>>>>> 5b019f7f18a578258c5c19537ec5421f873eb7af
+    this.scene.add('Start', Start);
+    this.scene.start('Start')
   }
 }
 
