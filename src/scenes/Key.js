@@ -25,7 +25,7 @@ export default class Key extends Phaser.Scene {
     this.load.image('spikesFlipped', './assets/sprites/spikesFlipped.png');
     this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
-    this.load.tilemapTiledJSON('map', './assets/tilemaps/key01.json');
+    this.load.tilemapTiledJSON('map3', './assets/tilemaps/key01.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
       frameHeight: 75,
       frameWidth: 100
@@ -113,7 +113,7 @@ export default class Key extends Phaser.Scene {
     });
 
     // Make the map work
-    const map = this.make.tilemap({key: 'map'});
+    const map = this.make.tilemap({key: 'map3'});
     const tileset = map.addTilesetImage('tilesetcolor', 'tiles');
     this.platforms = map.createStaticLayer('Collision', tileset, 0, 0);
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
