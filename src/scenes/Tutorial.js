@@ -69,6 +69,10 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 120,
       frameWidth: 110
     });
+    this.load.spritesheet('dragonjump', './assets/spriteSheets/dragonjump.png', {
+      frameHeight: 60,
+      frameWidth: 105
+    });
 
 
     // Declare variables for center of the scene
@@ -219,6 +223,13 @@ export default class Level01 extends Phaser.Scene {
     });
 
     this.anims.create({
+      key: 'dragonjump',
+      frames: this.anims.generateFrameNumbers('dragonjump', {start: 0, end: 1}),
+      frameRate: 5,
+      repeat: -1
+    });
+
+    this.anims.create({
       key: 'viking',
       frames: this.anims.generateFrameNumbers('viking',{start: 0, end: 2}),
       frameRate: 10,
@@ -333,6 +344,8 @@ export default class Level01 extends Phaser.Scene {
     } else if (cursors.shift.isDown) {
       this.player.anims.play("dragontailwhip", true);
       this.melee();
+    } else if (cursors.up.isDown) {
+      this.player.anims.play("dragonjump", true);
     } else if (!(cursors.shift.isDown) && !(cursors.right.isDown) && !(cursors.left.isDown)){
       this.player.anims.play("idle", false);
     }

@@ -1,7 +1,7 @@
 /*global Phaser*/
-export default class Level01 extends Phaser.Scene {
+export default class Key extends Phaser.Scene {
   constructor () {
-    super('Level01');
+    super('Key');
   }
 
   init (data) {
@@ -25,8 +25,7 @@ export default class Level01 extends Phaser.Scene {
     this.load.image('spikesFlipped', './assets/sprites/spikesFlipped.png');
     this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
-    this.load.image('swingingAxe', './assets/sprites/swingingAxe.png');
-    this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01color.json');
+    this.load.tilemapTiledJSON('map', './assets/tilemaps/key01.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
       frameHeight: 75,
       frameWidth: 100
@@ -83,6 +82,14 @@ export default class Level01 extends Phaser.Scene {
       frameHeight: 10,
       frameWidth: 45
     });
+    this.load.spritesheet('keycollect', './assets/spriteSheets/keyturn.png', {
+      frameHeight: 50,
+      frameWidth: 16.7
+    });
+    this.load.spritesheet('kraken', './assets/spriteSheets/kraken.png', {
+      frameHeight: 100,
+      frameWidth: 116.7
+    });
 
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
@@ -112,66 +119,22 @@ export default class Level01 extends Phaser.Scene {
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
     this.lava = map.createStaticLayer('Lava', tileset, 0, 0);
     sky.setDepth(-10);
-    this.door1 = map.createStaticLayer('Door1', tileset, 0, 0);
+    this.door1 = map.createStaticLayer('Door', tileset, 0, 0);
     this.door1.setCollisionByExclusion(-1, true);
-    this.door2 = map.createStaticLayer('Door2', tileset, 0, 0);
     this.lava.name = 'lava';
     this.lava.setCollisionByExclusion(-1, true);
     this.platforms.setCollisionByExclusion(-1, true);
     this.TILE_BIAS = 32;
 
-    // Add swinging axe
-    this.swingingAxe = this.physics.add
-      .sprite(6600, 535, 'swingingAxe')
-      .setSize(250, 375)
-      .setDisplaySize(250, 375)
-      .setGravity(0, -1000);
-    this.swingingAxe.flipY = true;
-
-    // Add in the breakable blocks
-    this.block = this.physics.add
-      .sprite(720, 1137, 'platform')
-      .setSize(99, 32)
-      .setGravity(0, -1000)
-      .setImmovable(true)
-      .setDisplaySize(96, 32);
-    this.block2 = this.physics.add
-      .sprite(1296, 1137, 'platform')
-      .setSize(99, 32)
-      .setGravity(0, -1000)
-      .setImmovable(true)
-      .setDisplaySize(96, 32);
-    this.block3 = this.physics.add
-      .sprite(8800, 1088, 'platform')
-      .setSize(100, 25)
-      .setGravity(0, -1000)
-      .setImmovable(true)
-      .setDisplaySize(64, 64);
-    this.block3.name = 'bossBlock';
 
     // Create all of the spikes
     var spikes = this.physics.add.staticGroup();
     var spikesFlipped = this.physics.add.staticGroup();
     spikesFlipped.name = 'spikesFlipped';
     spikes.name = 'spikes';
-    this.createSpikes(2033, 1007, 3, spikes);
-    this.createSpikes(2033 + 32 * 7, 1007, 2, spikes);
-    this.createSpikes(2033 + 32 * 12, 1007, 3, spikes);
-    this.createSpikes(2033 + 32 * 16, 1007, 2, spikes);
-    this.createSpikes(2033 + 32 * 21, 1007, 4, spikes);
-    this.createSpikes(2033 + 32 * 28, 1007, 2, spikes);
-    this.createSpikes(2033 + 32 * 39, 1007, 3, spikes);
-    this.createSpikes(2033 + 32 * 44, 1007, 7, spikes);
-    this.createSpikes(7696, 1107, 3, spikes);
-    this.createSpikes(7696 + 32 * 6, 1107, 3, spikes);
-    this.createSpikes(7696 + 32 * 15, 1107, 3, spikes);
-    this.createSpikes(5328, 688, 8, spikesFlipped);
-    this.createSpikes(7696 + 32 * 6, 336, 4, spikesFlipped);
-    this.createSpikes(7696 + 32 * 10, 336 - 32, 2, spikesFlipped);
-    this.createSpikes(7696 + 32 * 12, 336 - 32* 2, 2, spikesFlipped);
 
     // Add the dragon and all of his properities
-    this.player = this.physics.add.sprite(150, 1000, 'dragon');
+    this.player = this.physics.add.sprite(150, 930, 'dragon');
     this.player.collideWorldBounds = true;
     this.player
       .setDisplaySize(80, 64)
@@ -182,6 +145,13 @@ export default class Level01 extends Phaser.Scene {
     this.player.body.setMaxVelocity(5000);
     this.player.body.setDragX(10000);
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    //Place the key on the map
+    this.keycollect = this.physics.add.sprite(2450, 230, 'keycollect');
+
+    //Place Kraken on map
+    this.kraken = this.physics.add.sprite(2000, 230, 'kraken');
+    this.kraken.setSize(50, 70);
 
     // Adding in the fireball
     var fireball, fireballs, enemy, enemyGroup;
@@ -207,17 +177,6 @@ export default class Level01 extends Phaser.Scene {
     this.jumpMax = 2;
     this.jumpCount = 0;
     this.input.keyboard.on('keydown_UP', this.doubleJump, this);
-
-    // Add in all of the chests
-    this.chest = this.physics.add.sprite(1020, 200, 'chest');
-    this.chest2 = this.physics.add.sprite(3120, 1000, 'chest');
-    this.chest2
-      .setSize(96, 75)
-      .setDisplaySize(96, 75);
-    this.chest3 = this.physics.add.sprite(1000, 1200, 'chest');
-    this.chest.name = 'chest';
-    this.chest2.name = 'chest2';
-    this.chest3.name = 'chest3';
 
     // Add in both of the vikings
     this.viking = this.physics.add.sprite(1420, 1010, 'viking');
@@ -272,7 +231,7 @@ export default class Level01 extends Phaser.Scene {
     }
 
     // All of the physics between all the sprites
-    this.platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
+    this.platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3, this.keycollect, this.kraken];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
@@ -396,11 +355,26 @@ export default class Level01 extends Phaser.Scene {
       frameRate: 5,
       repeat: -1
     });
+
+    this.anims.create({
+      key: 'keyturn',
+      frames: this.anims.generateFrameNumbers('keycollect', {start: 0, end: 5}),
+      frameRate: 5,
+      repeat: -1
+    });
+
     this.anims.create({
       key: 'bowDwarfShoot',
       frames: this.anims.generateFrameNumbers('dwarfBow', {start: 0, end: 1}),
       frameRate: 10,
       repeat: 0
+    });
+
+    this.anims.create({
+      key: 'krakenAttack',
+      frames: this.anims.generateFrameNumbers('kraken', {start: 0, end: 5}),
+      frameRate: 6,
+      repeat: -1
     });
 
     // Add in the tweens
@@ -454,22 +428,6 @@ export default class Level01 extends Phaser.Scene {
       }
     })
 
-    this.swingingAxeAngle = 0;
-    this.swingingAxe.setOrigin(0.5, 0);
-    this.swingingAxeTween = this.tweens.add({
-      targets: this.swingingAxe,
-      duration: 1000,
-      loop: -1,
-      onLoop: ()=>{
-        if (this.swingingAxeAngle < 90){
-          this.swingingAxeAngle += 1;
-        } else if (this.swingingAxe > 90){
-          this.swingingAxeAngle -= 1;
-        }
-        this.swingingAxe.setAngle(this.swingingAxeAngle);
-      }
-    });
-
     //  The score
     this.score = 0;
     this.scoreText = this.add.text(20, 55, "Score: 0", {
@@ -487,6 +445,12 @@ export default class Level01 extends Phaser.Scene {
   }
 
   update (time, delta) {
+    //key spinning
+    this.keycollect.anims.play('keyturn', true);
+
+    //Animate kraken
+    this.kraken.anims.play('krakenAttack', true);
+
     // Flipping wizard
     if (this.wizard.x == 8890){
       this.wizard.flipX = true;
