@@ -35,7 +35,7 @@ export default class GameOverScene extends Phaser.Scene {
     var len = this.time.length;
     var centerY = this.centerY;
     var yourTime = this.time[this.time.length - 1];
-    this.time.sort(function(a,b){return a - b});
+    //this.time.sort(function(a,b){return a - b});
     for (var i = 0; i < len && i < 5; i++){
       centerY += 25;
       var j = i + 1;
