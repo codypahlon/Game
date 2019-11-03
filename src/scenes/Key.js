@@ -5,13 +5,9 @@ export default class Key extends Phaser.Scene {
   }
 
   init (data) {
-    // Initialization code goes here
-    if (data != null && !(data.tutorial)) {
-      this.times = data.time;
-    } else {
-      this.times = 0;
-    }
-
+    this.times = data.time;
+    this.score = data.score;
+    this.beatWizard = data.beatWizard;
   }
 
   preload () {
@@ -103,6 +99,8 @@ export default class Key extends Phaser.Scene {
     this.initialized = false;
     this.bowDwarfDead = 0;
     this.inLava = false;
+    this.hasKey = false;
+    this.krakenBeat = false;
 
     // Adding timer for the level
     this.timer = this.time.addEvent({
@@ -230,6 +228,14 @@ export default class Key extends Phaser.Scene {
       this.enemyGroup.add(enemies[i]);
     }
 
+    this.door1 = this.physics.add
+      .sprite(66, 926, 'platform')
+      .setSize(100, 25)
+      .setAlpha(0)
+      .setGravity(0, -1000)
+      .setImmovable(true)
+      .setDisplaySize(64, 64);
+
     // All of the physics between all the sprites
     this.platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3, this.keycollect, this.kraken];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
@@ -248,6 +254,8 @@ export default class Key extends Phaser.Scene {
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikesFlipped, this.gotHit, null, this);
+    this.physics.add.collider(this.player, this.door1, this.backToLevel1, null, this);
+    this.physics.add.collider(this.player, this.keycollect, this.collectedTheKey, null, this);
 
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
@@ -429,8 +437,7 @@ export default class Key extends Phaser.Scene {
     })
 
     //  The score
-    this.score = 0;
-    this.scoreText = this.add.text(20, 55, "Score: 0", {
+    this.scoreText = this.add.text(20, 55, "Score: " + this.score, {
       fontSize: "32px"
     });
     this.scoreText.setScrollFactor(0);
@@ -567,7 +574,7 @@ export default class Key extends Phaser.Scene {
           this.times[this.times.length] = time;
         }
       }
-      this.scene.start('GameOverScene', {time: this.times, score: this.score});
+      this.scene.start('Key', {time: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false});
       this.gameOver = true;
       return;
     }
@@ -602,6 +609,18 @@ export default class Key extends Phaser.Scene {
     }
   }
 
+backToLevel1(player, door){
+  this.scene.start('Level01', {time: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false, beatWizard: this.beatWizard});
+}
+
+collectedTheKey(player, key){
+  console.log(1);
+  this.krakenBeat = true;
+  if (this.krakenBeat == true){
+    key.disableBody(true, true);
+    this.hasKey = true;
+  }
+}
 // Checking whether the player was hit
 gotHit(spriteA, spriteB){
   if (this.inLava){

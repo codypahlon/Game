@@ -55,7 +55,7 @@ export default class GameOverScene extends Phaser.Scene {
     var cursors = this.input.keyboard.createCursorKeys();
 
     if (cursors.left.isDown) {
-      this.scene.start('Level01', {time: this.time});
+      this.scene.start('Level01', {time: this.time, fromKey: false});
     }
   }
 }

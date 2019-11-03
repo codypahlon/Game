@@ -7,7 +7,11 @@ export default class Level01 extends Phaser.Scene {
   init (data) {
     // Initialization code goes here
     if (data != null && !(data.tutorial)) {
-      this.times = data.time;
+      this.times = data.time
+      this.hasKey = data.hasKey;
+      this.fromKey = data.fromKey;
+      this.score = data.score;
+      this.beatWizard = data.beatWizard;
     } else {
       this.times = 0;
     }
@@ -91,11 +95,17 @@ export default class Level01 extends Phaser.Scene {
 
   create (data) {
     // Declare variables
+    if (this.beatWizard == null){
+      this.beatWizard = false;
+    }
     this.gameOver = true;
     this.meleeing = false;
     this.initialized = false;
     this.bowDwarfDead = 0;
     this.inLava = false;
+    if (this.hasKey == null){
+      this.hasKey = false;
+    }
 
     // Adding timer for the level
     this.timer = this.time.addEvent({
@@ -112,9 +122,8 @@ export default class Level01 extends Phaser.Scene {
     const sky = map.createStaticLayer('Background', tileset, 0, 0);
     this.lava = map.createStaticLayer('Lava', tileset, 0, 0);
     sky.setDepth(-10);
-    this.door1 = map.createStaticLayer('Door1', tileset, 0, 0);
-    this.door1.setCollisionByExclusion(-1, true);
-    this.door2 = map.createStaticLayer('Door2', tileset, 0, 0);
+    const door1 = map.createStaticLayer('Door1', tileset, 0, 0);
+    const door2 = map.createStaticLayer('Door2', tileset, 0, 0);
     this.lava.name = 'lava';
     this.lava.setCollisionByExclusion(-1, true);
     this.platforms.setCollisionByExclusion(-1, true);
@@ -129,6 +138,20 @@ export default class Level01 extends Phaser.Scene {
     this.swingingAxe.flipY = true;
 
     // Add in the breakable blocks
+    this.door1 = this.physics.add
+      .sprite(3750, 1088, 'platform')
+      .setSize(100, 25)
+      .setAlpha(0)
+      .setGravity(0, -1000)
+      .setImmovable(true)
+      .setDisplaySize(64, 64);
+    this.door2 = this.physics.add
+      .sprite(9568, 1088, 'platform')
+      .setSize(100, 25)
+      .setAlpha(0)
+      .setGravity(0, -1000)
+      .setImmovable(true)
+      .setDisplaySize(64, 64);
     this.block = this.physics.add
       .sprite(720, 1137, 'platform')
       .setSize(99, 32)
@@ -148,6 +171,7 @@ export default class Level01 extends Phaser.Scene {
       .setImmovable(true)
       .setDisplaySize(64, 64);
     this.block3.name = 'bossBlock';
+
 
     // Create all of the spikes
     var spikes = this.physics.add.staticGroup();
@@ -171,7 +195,12 @@ export default class Level01 extends Phaser.Scene {
     this.createSpikes(7696 + 32 * 12, 336 - 32* 2, 2, spikesFlipped);
 
     // Add the dragon and all of his properities
-    this.player = this.physics.add.sprite(150, 1000, 'dragon');
+    if (this.fromKey){
+      this.player = this.physics.add.sprite(3850, 1000, 'dragon');
+    } else {
+      this.player = this.physics.add.sprite(150, 1000, 'dragon');
+    }
+    //this.player.disableBody(true, true);
     this.player.collideWorldBounds = true;
     this.player
       .setDisplaySize(80, 64)
@@ -179,7 +208,7 @@ export default class Level01 extends Phaser.Scene {
       .setOffset(30, 30);
     this.player.name = 'dragon';
     this.player.body.setMaxSpeed(10000);
-    this.player.body.setMaxVelocity(5000);
+    this.player.body.setMaxVelocity(1000);
     this.player.body.setDragX(10000);
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
@@ -234,7 +263,9 @@ export default class Level01 extends Phaser.Scene {
     this.wizard.setScale(1.2);
     this.wizard.setImmovable(true);
     this.wizard.body.enable = false;
-    this.wizard.health = 50;
+    this.wizard.name = 'wizard';
+    this.wizard.health = 3;
+
 
     // Add in the 3 dwarves
     this.dwarf = this.physics.add.sprite(900, 1010, 'dwarfAxe');
@@ -285,14 +316,16 @@ export default class Level01 extends Phaser.Scene {
     this.physics.add.collider(this.player, this.block, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.block2, this.destroyBlock, null, this);
     this.physics.add.collider(this.player, this.block3, this.destroyBlock, null, this);
-    this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this);
+    this.physics.add.collider(this.player, this.wizard, this.gotHit, null, this).name = 'wizard';
     this.physics.add.collider(this.player, enemies, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikes, this.gotHit, null, this);
     this.physics.add.collider(this.player, spikesFlipped, this.gotHit, null, this);
+    this.physics.add.collider(this.player, this.door1, this.goToKeyScene, null, this);
+    this.physics.add.collider(this.player, this.door2, this.endLevel, null, this);
 
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.cameras.main.setBackgroundColor('#1f2712')
 
     //Create animations
     this.anims.create({
@@ -471,18 +504,34 @@ export default class Level01 extends Phaser.Scene {
     });
 
     //  The score
-    this.score = 0;
-    this.scoreText = this.add.text(20, 55, "Score: 0", {
+    if (this.fromKey){
+      var score = this.score;
+    } else {
+      score = 0;
+    }
+    this.score = score;
+    this.scoreText = this.add.text(20, 55, "Score: " + score, {
       fontSize: "32px"
     });
     this.scoreText.setScrollFactor(0);
 
     //Player health tracker
     this.heart = this.physics.add.sprite(85, 40, 'heart');
+    this.smallHeart = this.physics.add.sprite(400, 270, 'heart');
     this.heart.setGravity(0, -1000);
+    this.smallHeart.setGravity(0, -1000);
     this.heart.setFrame(this.heart.frame);
+    this.smallHeart.setFrame(this.heart.frame);
     this.heart.setScrollFactor(0, 0);
+    this.smallHeart.setScrollFactor(0, 0);
+    this.smallHeart.setDisplaySize(100, 30);
+    this.smallHeart.setAlpha(0.25);
     this.player.health = 100;
+
+    if (this.beatWizard == true){
+      this.wizard.disableBody(true, true);
+      this.block3.disableBody(true, true);
+    }
 
   }
 
@@ -504,9 +553,11 @@ export default class Level01 extends Phaser.Scene {
       this.time.addEvent({
         delay: 5000,
         callback: ()=>{
-          this.wizardTween.resume();
-          this.wizard.clearTint();
-          this.wizard.body.enable = false;
+          if (this.beatWizard == false){
+            this.wizardTween.resume();
+            this.wizard.clearTint();
+            this.wizard.body.enable = false;
+          }
         }
       });
     }
@@ -638,6 +689,10 @@ export default class Level01 extends Phaser.Scene {
     }
   }
 
+goToKeyScene (player, door){
+  this.scene.start('Key', {time: this.times, score: this.score, beatWizard: this.beatWizard});
+}
+
 // Checking whether the player was hit
 gotHit(spriteA, spriteB){
   if (this.inLava){
@@ -647,7 +702,9 @@ gotHit(spriteA, spriteB){
     this.win = false;
   } else {
     spriteA.health -= 25;
-    this.heart.setFrame((1 - (spriteA.health / 100)) * 4);
+    var frame = (1- (spriteA.health / 100)) * 4;
+    this.heart.setFrame(frame);
+    this.smallHeart.setFrame(frame);
     if (spriteB.name == 'wizardFireball'){
       spriteB.destroy();
     } else {
@@ -730,9 +787,28 @@ collectCoins(player, coins) {
 }
 
 // Checking to see if player won
-gameOverWin(spriteA, spriteB){
-  this.gameOver = false;
-  this.win = true;
+endLevel (spriteA, spriteB){
+  if (this.hasKey && this.beatWizard){
+    this.gameOver = false;
+    this.win = true;
+  } else {
+    if (!(this.hasKey) && ((this.keyText == null) || !(this.keyText.visible))){
+      this.keyText = this.add.text(300, 400, "Need a key!", {
+        fontSize: "32px"
+      });
+      this.keyText.setScrollFactor(0);
+      this.time.addEvent({
+       delay: 500,
+       callbackScope: this,
+       callback: this.deleteText
+     });
+    }
+  }
+}
+
+deleteText(x, y) {
+  this.keyText.destroy();
+  this.keyText == null;
 }
 
 // Flpping the sprite
@@ -880,9 +956,13 @@ hitEnemy (fireball, enemy){
         this.explosion.disableBody(true, true);
       }
     });
-    if (enemy == this.wizard){
-      this.gameOverWin();
-    } else if (enemy.name == 'bowDwarf'){
+
+    if (enemy.name == 'wizard'){
+      this.beatWizard = true;
+      this.wizardTween.pause();
+      this.wizard.disableBody(true, true);
+    }
+    if (enemy.name == 'bowDwarf'){
       var len = this.bowDwarfTween.targets.length
       var newLst = [];
       for (var i = 0; i < len; i++){
