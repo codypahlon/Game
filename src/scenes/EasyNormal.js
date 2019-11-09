@@ -1,15 +1,15 @@
 /*global Phaser*/
-export default class Start extends Phaser.Scene {
+export default class EasyNormal extends Phaser.Scene {
   constructor () {
-    super('Start');
+    super('EasyNormal');
   }
 
   preload () {
     this.load.image('sTiles', './assets/tilesets/starttiles.png');
     this.load.tilemapTiledJSON('mapstart', './assets/tilemaps/Start.json');
     this.load.image('title', './assets/sprites/title.png');
-    this.load.image('startbutton', './assets/sprites/start.png');
-    this.load.image('tutorialbutton', './assets/sprites/tutorial.png');
+    this.load.image('easy', './assets/sprites/easy.png');
+    this.load.image('normal', './assets/sprites/normal.png');
     this.load.spritesheet('pointer', './assets/spriteSheets/fireball.png', {
       frameHeight: 25,
       frameWidth: 16.666
@@ -35,9 +35,10 @@ export default class Start extends Phaser.Scene {
     fafnirdragon.setScale(.34);
 
     //Place start and tutorial buttons
-    const startbutton = this.add.sprite(410, 407, 'startbutton');
-    startbutton.setScale(.8);
-    const tutorialbutton = this.add.sprite(415, 467, 'tutorialbutton');
+    const easy = this.add.sprite(410, 407, 'easy');
+    easy.setScale(.7);
+    const normal = this.add.sprite(415, 467, 'normal');
+    normal.setScale(1.2);
     //tutorialbutton.setScale(.6);
 
     //Place pointer (fireball)
@@ -71,19 +72,19 @@ export default class Start extends Phaser.Scene {
       this.pointer.y = 407;
       this.pointer.x = 330;
       if (Phaser.Input.Keyboard.JustDown(this.enter)){
-        this.scene.start('EasyNormal', {time: this.time});
+        this.scene.start('Level01', {time: this.time});
       }
     }
 
     //Press enter to go to next scene
     if (this.pointer.y == 407 & this.pointer.x == 330) {
       if (Phaser.Input.Keyboard.JustDown(this.enter)){
-        this.scene.start('EasyNormal', {time: this.time});
+        this.scene.start('Level01', {time: this.time});
       }
     }
     if (this.pointer.y == 467 & this.pointer.x == 300) {
       if (Phaser.Input.Keyboard.JustDown(this.enter)){
-        this.scene.start('Tutorial', {time: this.time});
+        this.scene.start('Level01', {time: this.time});
       }
     }
   }

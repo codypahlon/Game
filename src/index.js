@@ -6,6 +6,7 @@ import Tutorial from './scenes/Tutorial.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import Key from './scenes/Key.js';
 import Start from './scenes/Start.js';
+import EasyNormal from './scenes/EasyNormal.js';
 import Config from './config/config.js';
 
 class Game extends Phaser.Game {
@@ -18,6 +19,7 @@ class Game extends Phaser.Game {
     this.scene.add('GameOverScene', GameOverScene);
     this.scene.add('Key', Key);
     this.scene.add('Start', Start);
+    this.scene.add('EasyNormal', EasyNormal);
     this.scene.start('Start');
   }
 }
