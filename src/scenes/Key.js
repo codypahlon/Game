@@ -84,7 +84,7 @@ export default class Key extends Phaser.Scene {
     });
     this.load.spritesheet('kraken', './assets/spriteSheets/kraken.png', {
       frameHeight: 100,
-      frameWidth: 116.7
+      frameWidth: 125
     });
 
     // Declare variables for center of the scene
@@ -146,6 +146,7 @@ export default class Key extends Phaser.Scene {
 
     //Place the key on the map
     this.keycollect = this.physics.add.sprite(2450, 230, 'keycollect');
+
 
     //Place Kraken on map
     this.kraken = this.physics.add.sprite(2000, 230, 'kraken');
