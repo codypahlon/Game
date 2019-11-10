@@ -22,6 +22,8 @@ export default class Start extends Phaser.Scene {
 
   create (data) {
     //Load in Background
+    this.registry.set('times', []);
+    this.registry.set('scores', []);
     const mapstart = this.make.tilemap({key: 'mapstart'});
     const tileset = mapstart.addTilesetImage('starttiles', 'sTiles');
     const sky = mapstart.createStaticLayer('Background', tileset, -80, 0);

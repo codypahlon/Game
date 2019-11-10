@@ -12,6 +12,7 @@ export default class Level01 extends Phaser.Scene {
       this.fromKey = data.fromKey;
       this.score = data.score;
       this.beatWizard = data.beatWizard;
+      this.health = data.health;
     } else {
       this.times = 0;
     }
@@ -264,7 +265,7 @@ export default class Level01 extends Phaser.Scene {
     this.wizard.setImmovable(true);
     this.wizard.body.enable = false;
     this.wizard.name = 'wizard';
-    this.wizard.health = 3;
+    this.wizard.health = 50;
 
 
     // Add in the 3 dwarves
@@ -516,17 +517,20 @@ export default class Level01 extends Phaser.Scene {
     this.scoreText.setScrollFactor(0);
 
     //Player health tracker
+    if (this.health == null){
+      this.health = 100;
+    }
     this.heart = this.physics.add.sprite(85, 40, 'heart');
     this.smallHeart = this.physics.add.sprite(400, 270, 'heart');
     this.heart.setGravity(0, -1000);
     this.smallHeart.setGravity(0, -1000);
-    this.heart.setFrame(this.heart.frame);
-    this.smallHeart.setFrame(this.heart.frame);
+    this.player.health = this.health;
+    this.heart.setFrame((1 - (this.player.health / 100)) * 4);
+    this.smallHeart.setFrame((1 - (this.player.health / 100)) * 4);
     this.heart.setScrollFactor(0, 0);
     this.smallHeart.setScrollFactor(0, 0);
     this.smallHeart.setDisplaySize(100, 30);
     this.smallHeart.setAlpha(0.25);
-    this.player.health = 100;
 
     if (this.beatWizard == true){
       this.wizard.disableBody(true, true);
@@ -690,7 +694,7 @@ export default class Level01 extends Phaser.Scene {
   }
 
 goToKeyScene (player, door){
-  this.scene.start('Key', {time: this.times, score: this.score, beatWizard: this.beatWizard});
+  this.scene.start('Key', {time: this.times, score: this.score, beatWizard: this.beatWizard, health: this.player.health});
 }
 
 // Checking whether the player was hit

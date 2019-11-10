@@ -5,13 +5,7 @@ export default class GameOverScene extends Phaser.Scene {
   }
 
   init (data) {
-    // Initialization code goes here
-    if (typeof data.time == 'number'){
-      this.time = [data.time];
-    } else {
-      this.time = data.time;
-    };
-    this.score = data.score;
+
   }
 
   preload () {
@@ -34,18 +28,21 @@ export default class GameOverScene extends Phaser.Scene {
     //Create the scene
     var len = this.time.length;
     var centerY = this.centerY;
-    var yourTime = this.time[this.time.length - 1];
+    this.times = this.registry.get('times');
+    this.scores = this.registry.get('scores');
+    console.log(this.times, this.scores);
+    var yourTime = this.times[this.times.length - 1];
     //this.time.sort(function(a,b){return a - b});
     for (var i = 0; i < len && i < 5; i++){
       centerY += 25;
       var j = i + 1;
-      var time = this.add.text(this.centerX - 90, centerY + 90, j.toString() + ': ' + this.time[i] + ' seconds');
+      var time = this.add.text(this.centerX - 90, centerY + 90, j.toString() + ': ' + this.times[i] + ' seconds');
     }
     if (yourTime == 0){
       yourTime = 'YOU LOST';
     }
     var yourTime = this.add.text(this.centerX - 90, this.centerY + 250, 'Your time: ' + yourTime);
-    var yourScore = this.add.text(this.centerX - 90, this.centerY + 275, 'Your score: ' + this.score);
+    var yourScore = this.add.text(this.centerX - 90, this.centerY + 275, 'Your score: ' + this.scores[this.scores.length - 1]);
     var tryAgain = this.add.text(this.centerX - 120, this.centerY + 325, 'Press left to try again.')
   }
 

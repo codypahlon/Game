@@ -7,6 +7,7 @@ export default class Key extends Phaser.Scene {
   init (data) {
     this.times = data.time;
     this.score = data.score;
+    this.health = data.health;
     this.beatWizard = data.beatWizard;
   }
 
@@ -21,6 +22,8 @@ export default class Key extends Phaser.Scene {
     this.load.image('spikesFlipped', './assets/sprites/spikesFlipped.png');
     this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
+    this.load.image('boat', './assets/sprites/boat.png');
+    this.load.image('krakenArm', './assets/sprites/krakenarm.png');
     this.load.tilemapTiledJSON('map3', './assets/tilemaps/key01.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
       frameHeight: 75,
@@ -97,10 +100,11 @@ export default class Key extends Phaser.Scene {
     this.gameOver = true;
     this.meleeing = false;
     this.initialized = false;
-    this.bowDwarfDead = 0;
     this.inLava = false;
     this.hasKey = false;
     this.krakenBeat = false;
+    this.krakenBattle = false;
+    this.count = 0;
 
     // Adding timer for the level
     this.timer = this.time.addEvent({
@@ -111,18 +115,26 @@ export default class Key extends Phaser.Scene {
     });
 
     // Make the map work
-    const map = this.make.tilemap({key: 'map3'});
-    const tileset = map.addTilesetImage('tilesetcolor', 'tiles');
-    this.platforms = map.createStaticLayer('Collision', tileset, 0, 0);
-    const sky = map.createStaticLayer('Background', tileset, 0, 0);
-    this.lava = map.createStaticLayer('Lava', tileset, 0, 0);
+    this.map = this.make.tilemap({key: 'map3'});
+    const tileset = this.map.addTilesetImage('tilesetcolor', 'tiles');
+    this.platforms = this.map.createStaticLayer('Collision', tileset, 0, 0);
+    const sky = this.map.createStaticLayer('Background', tileset, 0, 0);
+    this.lava = this.map.createStaticLayer('Lava', tileset, 0, 0);
     sky.setDepth(-10);
-    this.door1 = map.createStaticLayer('Door', tileset, 0, 0);
+    this.door1 = this.map.createStaticLayer('Door', tileset, 0, 0);
     this.door1.setCollisionByExclusion(-1, true);
     this.lava.name = 'lava';
     this.lava.setCollisionByExclusion(-1, true);
     this.platforms.setCollisionByExclusion(-1, true);
     this.TILE_BIAS = 32;
+
+    //Add in the boat
+    this.boat = this.physics.add
+      .sprite(1700, 750, 'boat')
+      .setGravity(0, -1000)
+      .setImmovable(true)
+      .setSize(1, 1)
+      .setDisplaySize(1800, 900);
 
 
     // Create all of the spikes
@@ -132,7 +144,9 @@ export default class Key extends Phaser.Scene {
     spikes.name = 'spikes';
 
     // Add the dragon and all of his properities
+    //150x930
     this.player = this.physics.add.sprite(150, 930, 'dragon');
+    //  this.player.disableBody(true, true);
     this.player.collideWorldBounds = true;
     this.player
       .setDisplaySize(80, 64)
@@ -142,15 +156,16 @@ export default class Key extends Phaser.Scene {
     this.player.body.setMaxSpeed(10000);
     this.player.body.setMaxVelocity(5000);
     this.player.body.setDragX(10000);
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
 
     //Place the key on the map
     this.keycollect = this.physics.add.sprite(2450, 230, 'keycollect');
 
-
     //Place Kraken on map
-    this.kraken = this.physics.add.sprite(2000, 230, 'kraken');
+    this.kraken = this.physics.add.sprite(2000, 900, 'kraken');
     this.kraken.setSize(50, 70);
+    this.kraken.health = 25;
+    this.kraken.setImmovable(true);
 
     // Adding in the fireball
     var fireball, fireballs, enemy, enemyGroup;
@@ -178,52 +193,63 @@ export default class Key extends Phaser.Scene {
     this.input.keyboard.on('keydown_UP', this.doubleJump, this);
 
     // Add in both of the vikings
-    this.viking = this.physics.add.sprite(1420, 1010, 'viking');
+    this.viking = this.physics.add.sprite(1175, 500, 'viking');
     this.viking.setSize(70, 96);
-    this.viking2 = this.physics.add.sprite(4100, 1010, 'viking');
-    this.viking2.setSize(70, 96);
     this.viking.health = 2;
-    this.viking2.health = 2;
     this.viking.name = 'viking';
-    this.viking2.name = 'viking';
-
-    // Add in the wizard
-    this.wizard = this.physics.add.sprite(9480, 1050, 'wizard');
-    this.wizard.setScale(1.2);
-    this.wizard.setImmovable(true);
-    this.wizard.body.enable = false;
-    this.wizard.health = 50;
 
     // Add in the 3 dwarves
-    this.dwarf = this.physics.add.sprite(900, 1010, 'dwarfAxe');
-    this.dwarf2 = this.physics.add.sprite(1000, 1010, 'dwarfAxe');
-    this.dwarf3 = this.physics.add.sprite(1100, 1010, 'dwarfAxe');
+    this.dwarf = this.physics.add.sprite(1075, 500, 'dwarfAxe');
+    this.dwarf2 = this.physics.add.sprite(975, 500, 'dwarfAxe');
     this.dwarf.health = 1;
     this.dwarf2.health = 1;
-    this.dwarf3.health = 1;
     this.dwarf.name = 'dwarf';
     this.dwarf2.name = 'dwarf';
-    this.dwarf3.name = 'dwarf';
 
     //Add in shield dwarves
-    this.shieldDwarf = this.physics.add.sprite(1970, 900, 'dwarfShield');
+    this.shieldDwarf = this.physics.add.sprite(400, 840, 'dwarfShield');
     this.shieldDwarf.health = 1;
     this.shieldDwarf.name = 'shieldDwarf';
 
     //Add in the bow dwarves
-    this.bowDwarf = this.physics.add.sprite(1500, 700, 'dwarfBow');
-    this.bowDwarf2 = this.physics.add.sprite(4360, 700, 'dwarfBow');
-    this.bowDwarf3 = this.physics.add.sprite(4840, 500, 'dwarfBow');
+    this.bowDwarf = this.physics.add.sprite(1400, 825, 'dwarfBow');
     this.bowDwarf.health = 1;
-    this.bowDwarf2.health = 1;
-    this.bowDwarf3.health = 1;
     this.bowDwarf.name = 'bowDwarf';
-    this.bowDwarf2.name = 'bowDwarf';
-    this.bowDwarf3.name = 'bowDwarf';
+
+    //Add in the arms
+    this.arm = this.physics.add.sprite(800, 800, 'krakenArm');
+    this.armBottom = this.physics.add.sprite(850, 500, 'platform');
+    this.armBottom
+      .setAlpha(0)
+      .setCircle(200)
+      .setGravity(0, -1000);
+    this.arm
+      .setAlpha(0)
+      .setSize(0, -20)
+      .setOffset(-10, 15)
+      .setDisplaySize(1200, 200)
+      .setGravity(0, -1000);
+    this.arm.flipX = true;
+
+    this.arm2 = this.physics.add.sprite(2600, 800, 'krakenArm');
+    this.arm2Bottom = this.physics.add.sprite(2225, 500);
+    this.arm2Bottom
+      .setAlpha(0)
+      .setCircle(200)
+      .setGravity(0, -1000);
+    this.arm2
+      .setAlpha(0)
+      .setSize(0, -20)
+      .setOffset(10, 15)
+      .setDisplaySize(1200, 200)
+      .setGravity(0, -1000);
+
+    this.armParts = [this.arm, this.arm2, this.armBottom, this.arm2Bottom];
+    this.armParts.name = 'armParts';
 
     // Making enemy enemyGroup
     this.enemyGroup = this.physics.add.group();
-    var enemies = [this.dwarf, this.dwarf2, this.dwarf3, this.viking, this.viking2, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
+    var enemies = [this.dwarf, this.dwarf2, this.viking, this.shieldDwarf, this.bowDwarf, this.kraken];
 
     for (var i = 0; i < enemies.length; i++){
       this.enemyGroup.add(enemies[i]);
@@ -238,7 +264,7 @@ export default class Key extends Phaser.Scene {
       .setDisplaySize(64, 64);
 
     // All of the physics between all the sprites
-    this.platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3, this.keycollect, this.kraken];
+    this.platformCollisions = [this.viking, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.shieldDwarf, this.bowDwarf, this.keycollect, this.kraken];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
@@ -260,7 +286,7 @@ export default class Key extends Phaser.Scene {
 
     // Properties of the camera
     this.cameras.main.startFollow(this.player);
-    this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
 
     //Create animations
     this.anims.create({
@@ -289,7 +315,7 @@ export default class Key extends Phaser.Scene {
       frames: this.anims.generateFrameNumbers('viking', {start: 1, end: 3}),
       frameRate: 10,
       repeat: -1,
-    });
+    })
 
     this.anims.create({
       key: 'dwarfAttack',
@@ -387,36 +413,58 @@ export default class Key extends Phaser.Scene {
     });
 
     // Add in the tweens
-    this.wizard.anims.play('wizard', true);
+    this.armTween = this.tweens.add({
+      paused: true,
+      delay: 0,
+      duration: 2000,
+      targets: [this.arm, this.armBottom],
+      x: 1500,
+      yoyo: true
+    });
+
+    this.armBottomTween2 = this.tweens.add({
+      paused: true,
+      delay: 4000,
+      duration: 2000,
+      targets: this.arm2Bottom,
+      x: 1625,
+      yoyo: true
+    });
+
+    this.armTween2 = this.tweens.add({
+      paused: true,
+      delay: 4000,
+      duration: 2000,
+      targets: this.arm2,
+      x: 2000,
+      yoyo: true
+    });
+
+
     this.countTween = 0;
-    this.wizardTween = this.tweens.add({
+    this.krakenTween = this.tweens.add({
     paused: true,
-    targets: this.wizard,
-    delay: 2000,
-    props: {
-      x: 8890,
-      y: {value: 900, duration: 1500, ease: 'Linear'}
-    },
+    targets: this.kraken,
+    x: 1600,
     duration: 2000,
-    ease: 'Power2',
-    loop: -1,
+    ease: 'Linear',
     yoyo: true,
-    onLoop: ()=>{
-      this.countTween += 1;
-      this.wizardAttack();
-      this.wizard.anims.play('outOfBeam', true);
-      this.time.addEvent({
-        delay: 2000,
-        callback: ()=>{
-          this.wizard.anims.play('wizard', true);
-        }
-      });
+    loop: -1,
+    callbackScope: this,
+    onYoyo: ()=>{
+      this.arm.setAlpha(1);
+      this.arm2.setAlpha(1);
+      this.armTween.resume();
+      this.armTween2.resume();
+      this.armBottomTween2.resume();
+      this.cameras.main.setBounds(1725-400, 800-300, 600, 800);
+      this.physics.add.collider(this.player, this.armParts, this.gotHit, null, this);
       }
     });
 
     this.bowDwarfTween = this.tweens.add({
       paused: true,
-      targets: [this.bowDwarf, this.bowDwarf2, this.bowDwarf3],
+      targets: [this.bowDwarf],
       delay: 200,
       duration: 100,
       loop: -1,
@@ -446,9 +494,9 @@ export default class Key extends Phaser.Scene {
     //Player health tracker
     this.heart = this.physics.add.sprite(85, 40, 'heart');
     this.heart.setGravity(0, -1000);
-    this.heart.setFrame(this.heart.frame);
     this.heart.setScrollFactor(0, 0);
-    this.player.health = 100;
+    this.player.health = this.health;
+    this.heart.setFrame((1 - (this.player.health / 100)) * 4);
 
   }
 
@@ -458,44 +506,6 @@ export default class Key extends Phaser.Scene {
 
     //Animate kraken
     this.kraken.anims.play('krakenAttack', true);
-
-    // Flipping wizard
-    if (this.wizard.x == 8890){
-      this.wizard.flipX = true;
-    } else if (this.wizard.x == 9480){
-      this.wizard.flipX = false;
-    }
-
-    // Attacking from the sky
-    if (this.wizard.x == 9480 && this.countTween == 3){
-      this.wizardSkyAttack();
-      this.countTween = 0;
-      this.wizardTween.pause();
-      this.wizard.body.enable = true;
-      this.wizard.setTint(0xff9999);
-      this.time.addEvent({
-        delay: 5000,
-        callback: ()=>{
-          this.wizardTween.resume();
-          this.wizard.clearTint();
-          this.wizard.body.enable = false;
-        }
-      });
-    }
-
-    // Add colliders to wizard wizardFireballs
-    this.wizardFireballs.children.each(
-      function (b) {
-        if (b.active) {
-          b.name = 'wizardFireball';
-          this.physics.add.overlap(this.player, b, this.gotHit, null, this);
-          this.physics.add.collider(b, this.platforms, function destroy() {b.destroy();}, null, this);
-          if (b.x > this.wizard.x + 500){
-            b.destroy();
-          }
-        }
-      }.bind(this)
-    );
 
     // Add colliders to arrows
     this.arrows.children.each(
@@ -530,10 +540,12 @@ export default class Key extends Phaser.Scene {
     };
 
     // Make the enemies track the player when you get close
+
     this.enemyGroup.children.each(
       function (b) {
         if (b.active) {
           var anim;
+          /*
           if (b.name != 'shieldDwarf' && b.name != 'bowDwarf'){
             if (b.name == 'viking'){
               anim = 'vikingwalk';
@@ -552,13 +564,14 @@ export default class Key extends Phaser.Scene {
               b.body.setVelocityX(0);
               b.anims.play(anim, false);
             }
-          } else if (b.name == 'bowDwarf' && this.initialized == false){
+          } else */if (b.name == 'bowDwarf' && this.initialized == false){
             this.initialized = true;
             this.bowDwarfTween.resume();
           }
         }
       }.bind(this)
     );
+
 
 
     //Changing scenes to gameover
@@ -611,17 +624,16 @@ export default class Key extends Phaser.Scene {
   }
 
 backToLevel1(player, door){
-  this.scene.start('Level01', {time: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false, beatWizard: this.beatWizard});
+  this.scene.start('Level01', {time: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false, beatWizard: this.beatWizard, health: this.player.health});
 }
 
 collectedTheKey(player, key){
-  console.log(1);
-  this.krakenBeat = true;
   if (this.krakenBeat == true){
     key.disableBody(true, true);
     this.hasKey = true;
   }
-}
+};
+
 // Checking whether the player was hit
 gotHit(spriteA, spriteB){
   if (this.inLava){
@@ -629,6 +641,8 @@ gotHit(spriteA, spriteB){
     spriteA.destroy();
     this.gameOver = false;
     this.win = false;
+  } else if (spriteB.name == 'armParts'){
+    spriteA.health -= 25;
   } else {
     spriteA.health -= 25;
     this.heart.setFrame((1 - (spriteA.health / 100)) * 4);
@@ -796,24 +810,6 @@ melee(shift) {
   });
 }
 
-// Having the wizard shoot fireballs
-wizardAttack(){
-  var x, y, r;
-  r = Math.random();
-  x = 9480;
-  y = this.wizard.y;
-  if (r <= 0.33){
-    this.enableWizardBall(x, y + 40);
-    this.enableWizardBall(x, y -160);
-  } else if (r <= 0.66 && r > 0.33) {
-    this.enableWizardBall(x, y + 40);
-    this.enableWizardBall(x, y -60);
-  } else if (r > 0.66 && r <= 1.0){
-    this.enableWizardBall(x, y -60);
-    this.enableWizardBall(x, y -160);
-  }
-}
-
 // Creating the fireballs
 enableWizardBall(x, y, size = 40, gravity = -1000, velocity = -600){
   var wizardFireball = this.wizardFireballs.get();
@@ -822,16 +818,6 @@ enableWizardBall(x, y, size = 40, gravity = -1000, velocity = -600){
   wizardFireball.setDisplaySize(size, size);
   wizardFireball.setGravity(0, gravity);
   wizardFireball.anims.play('beam');
-}
-
-// Having the wizard drop fireballs from the sky
-wizardSkyAttack(){
-  var r = Math.floor(Math.random() * 4);
-  for (var i = 0; i < 5; i++){
-    if (i != r){
-      this.enableWizardBall(4469 + 118 * i + 4480, 600, 118, -800,  0);
-    }
-  }
 }
 
 // Checking to see whether you have hit an enemy
@@ -864,11 +850,17 @@ hitEnemy (fireball, enemy){
         this.explosion.disableBody(true, true);
       }
     });
-    if (enemy == this.wizard){
-      this.gameOverWin();
+    if (enemy == this.kraken){
+      this.krakenBeat = true;
+      this.krakenTween.pause();
+      this.cameras.main.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
+      for (var i = 0; i < 4; i++){
+        this.armParts[i].destroy();
+      }
     } else if (enemy.name == 'bowDwarf'){
       var len = this.bowDwarfTween.targets.length
       var newLst = [];
+      this.krakenTween.resume();
       for (var i = 0; i < len; i++){
         if (this.bowDwarfTween.targets[i] != enemy){
           newLst.push(this.bowDwarfTween.targets[i]);
