@@ -6,17 +6,15 @@ export default class Level01 extends Phaser.Scene {
 
   init (data) {
     // Initialization code goes here
+    this.times = data.times;
     if (data != null && !(data.tutorial)) {
-      this.times = data.time
       this.hasKey = data.hasKey;
       this.fromKey = data.fromKey;
       this.score = data.score;
       this.beatWizard = data.beatWizard;
       this.health = data.health;
-    } else {
-      this.times = 0;
+      this.timeElapsed = data.timeElapsed;
     }
-
   }
 
   preload () {
@@ -30,7 +28,7 @@ export default class Level01 extends Phaser.Scene {
     this.load.image('spikesFlipped', './assets/sprites/spikesFlipped.png');
     this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
-    this.load.image('swingingAxe', './assets/sprites/swingingAxe.png');
+    //this.load.image('swingingAxe', './assets/sprites/swingingAxe.png');
     this.load.tilemapTiledJSON('map', './assets/tilemaps/Level01color.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
       frameHeight: 75,
@@ -131,12 +129,14 @@ export default class Level01 extends Phaser.Scene {
     this.TILE_BIAS = 32;
 
     // Add swinging axe
+    /*
     this.swingingAxe = this.physics.add
       .sprite(6600, 535, 'swingingAxe')
       .setSize(250, 375)
       .setDisplaySize(250, 375)
       .setGravity(0, -1000);
     this.swingingAxe.flipY = true;
+    */
 
     // Add in the breakable blocks
     this.door1 = this.physics.add
@@ -196,6 +196,7 @@ export default class Level01 extends Phaser.Scene {
     this.createSpikes(7696 + 32 * 12, 336 - 32* 2, 2, spikesFlipped);
 
     // Add the dragon and all of his properities
+    //150, 1000
     if (this.fromKey){
       this.player = this.physics.add.sprite(3850, 1000, 'dragon');
     } else {
@@ -488,6 +489,7 @@ export default class Level01 extends Phaser.Scene {
       }
     })
 
+    /*
     this.swingingAxeAngle = 0;
     this.swingingAxe.setOrigin(0.5, 0);
     this.swingingAxeTween = this.tweens.add({
@@ -503,6 +505,7 @@ export default class Level01 extends Phaser.Scene {
         this.swingingAxe.setAngle(this.swingingAxeAngle);
       }
     });
+    */
 
     //  The score
     if (this.fromKey){
@@ -646,19 +649,11 @@ export default class Level01 extends Phaser.Scene {
 
     //Changing scenes to gameover
     if (!this.gameOver) {
-      if (this.times == 0) {
-        if (this.win){
-          this.times = this.timer.getElapsedSeconds();
-        } else {
-          this.times = 0;
-        }
-      } else {
-        if (this.win){
-          var time = this.timer.getElapsedSeconds();
-          this.times[this.times.length] = time;
-        }
+      if (this.timeElapsed == null){
+        this.timeElapsed = 0;
       }
-      this.scene.start('GameOverScene', {time: this.times, score: this.score});
+      this.times.push(this.timer.getElapsedSeconds() + this.timeElapsed);
+      this.scene.start('GameOverScene', {times: this.times, scores: this.score});
       this.gameOver = true;
       return;
     }
@@ -694,7 +689,7 @@ export default class Level01 extends Phaser.Scene {
   }
 
 goToKeyScene (player, door){
-  this.scene.start('Key', {time: this.times, score: this.score, beatWizard: this.beatWizard, health: this.player.health});
+  this.scene.start('Key', {times: this.times, score: this.score, beatWizard: this.beatWizard, health: this.player.health, timeElapsed: this.timer.getElapsedSeconds()});
 }
 
 // Checking whether the player was hit

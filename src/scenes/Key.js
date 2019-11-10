@@ -5,10 +5,11 @@ export default class Key extends Phaser.Scene {
   }
 
   init (data) {
-    this.times = data.time;
+    this.times = data.times;
     this.score = data.score;
     this.health = data.health;
     this.beatWizard = data.beatWizard;
+    this.timeElapsed = data.timeElapsed;
   }
 
   preload () {
@@ -572,8 +573,6 @@ export default class Key extends Phaser.Scene {
       }.bind(this)
     );
 
-
-
     //Changing scenes to gameover
     if (!this.gameOver) {
       if (this.times == 0) {
@@ -588,7 +587,7 @@ export default class Key extends Phaser.Scene {
           this.times[this.times.length] = time;
         }
       }
-      this.scene.start('Key', {time: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false});
+      this.scene.start('Key', {times: this.times, score: this.score - 20, hasKey: this.hasKey, fromKey: true, tutorial: false, health: 100});
       this.gameOver = true;
       return;
     }
@@ -624,7 +623,8 @@ export default class Key extends Phaser.Scene {
   }
 
 backToLevel1(player, door){
-  this.scene.start('Level01', {time: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false, beatWizard: this.beatWizard, health: this.player.health});
+  var timeElapsed = this.timeElapsed + this.timer.getElapsedSeconds();
+  this.scene.start('Level01', {times: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false, beatWizard: this.beatWizard, health: this.player.health, timeElapsed: timeElapsed});
 }
 
 collectedTheKey(player, key){
