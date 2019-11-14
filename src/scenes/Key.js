@@ -23,7 +23,7 @@ export default class Key extends Phaser.Scene {
     this.load.image('spikesFlipped', './assets/sprites/spikesFlipped.png');
     this.load.image('tiles', './assets/tilesets/tilesetcolor.png');
     this.load.image('platform', './assets/sprites/platform.png');
-    this.load.image('boat', './assets/sprites/boat.png');
+    //this.load.image('boat', './assets/sprites/boat.png');
     this.load.image('krakenArm', './assets/sprites/krakenarm.png');
     this.load.tilemapTiledJSON('map3', './assets/tilemaps/key01.json');
     this.load.spritesheet("chest", "./assets/spriteSheets/chest.png", {
@@ -121,6 +121,7 @@ export default class Key extends Phaser.Scene {
     this.platforms = this.map.createStaticLayer('Collision', tileset, 0, 0);
     const sky = this.map.createStaticLayer('Background', tileset, 0, 0);
     this.lava = this.map.createStaticLayer('Lava', tileset, 0, 0);
+    this.lava.setDepth(-10);
     sky.setDepth(-10);
     this.door1 = this.map.createStaticLayer('Door', tileset, 0, 0);
     this.door1.setCollisionByExclusion(-1, true);
@@ -130,12 +131,12 @@ export default class Key extends Phaser.Scene {
     this.TILE_BIAS = 32;
 
     //Add in the boat
-    this.boat = this.physics.add
-      .sprite(1700, 750, 'boat')
-      .setGravity(0, -1000)
-      .setImmovable(true)
-      .setSize(1, 1)
-      .setDisplaySize(1800, 900);
+    //this.boat = this.physics.add
+      //.sprite(1700, 750, 'boat')
+      //.setGravity(0, -1000)
+      //.setImmovable(true)
+      //.setSize(1, 1)
+      //.setDisplaySize(1800, 900);
 
 
     // Create all of the spikes
