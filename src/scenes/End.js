@@ -6,7 +6,7 @@ export default class End extends Phaser.Scene {
 
   preload () {
     this.load.image('eTiles', './assets/tilesets/endtiles.png');
-    this.load.tilemapTiledJSON('mapend', './assets/tilemaps/Start.json');
+    this.load.tilemapTiledJSON('mapend', './assets/tilemaps/YouWin.json');
     this.load.image('youwin', './assets/sprites/youwin.png');
     this.load.image('playagain', './assets/sprites/playagain.png');
     //this.load.image('tutorialbutton', './assets/sprites/tutorial.png');
@@ -24,17 +24,17 @@ export default class End extends Phaser.Scene {
     //Load in Background
     this.registry.set('times', []);
     this.registry.set('scores', []);
-    const mapstart = this.make.tilemap({key: 'mapstart'});
-    const tileset = mapstart.addTilesetImage('starttiles', 'eTiles');
-    const sky = mapstart.createStaticLayer('Background', tileset, -80, 0);
+    const mapend = this.make.tilemap({key: 'mapend'});
+    const tileset = mapend.addTilesetImage('endtiles', 'eTiles');
+    const sky = mapend.createStaticLayer('Background', tileset, -80, 0);
     sky.setScale(.38);
-    this.platforms = mapstart.createStaticLayer('Collision', tileset, -70, 0);
+    this.platforms = mapend.createStaticLayer('Collision', tileset, -70, 0);
     this.platforms.setScale(.38);
     this.TILE_BIAS = 32;
 
     //Place title
-    const fafnirdragon = this.add.sprite(410, 270, 'youwin');
-    fafnirdragon.setScale(.34);
+    const youwin = this.add.sprite(410, 270, 'youwin');
+    youwin.setScale(2);
 
     //Place start and tutorial buttons
     const playagain = this.add.sprite(410, 407, 'playagain');
