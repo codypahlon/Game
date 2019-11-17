@@ -3,11 +3,6 @@ export default class End extends Phaser.Scene {
   constructor () {
     super('End');
   }
-  
-  init (data) {
-    this.times = data.times;
-    this.scores = data.scores;
-  }
 
   preload () {
     this.load.image('eTiles', './assets/tilesets/endtiles.png');
@@ -27,6 +22,8 @@ export default class End extends Phaser.Scene {
 
   create (data) {
     //Load in Background
+    this.registry.set('times', []);
+    this.registry.set('scores', []);
     const mapend = this.make.tilemap({key: 'mapend'});
     const tileset = mapend.addTilesetImage('endtiles', 'eTiles');
     const sky = mapend.createStaticLayer('Background', tileset, -80, 0);
@@ -36,18 +33,17 @@ export default class End extends Phaser.Scene {
     this.TILE_BIAS = 32;
 
     //Place title
-    const youwin = this.add.sprite(410, 270, 'youwin');
-    youwin.setScale(2);
+    const youwin = this.add.sprite(405, 230, 'youwin');
+    youwin.setScale(4);
 
     //Place start and tutorial buttons
-    const playagain = this.add.sprite(410, 407, 'playagain');
-    playagain.setScale(.8);
+    const playagain = this.add.sprite(410, 400, 'playagain');
     //const tutorialbutton = this.add.sprite(415, 467, 'tutorialbutton');
     //tutorialbutton.setScale(.6);
 
     //Place pointer (fireball)
-    this.pointer = this.add.sprite(330, 407, 'pointer');
-    this.pointer.setScale(2);
+    this.pointer = this.add.sprite(305, 400, 'pointer');
+    this.pointer.setScale(1.5);
 
     //animations
     this.anims.create({
@@ -61,34 +57,16 @@ export default class End extends Phaser.Scene {
     //Add enter keyboard key
     this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 
-
-
 }
 
   update (time, delta) {
     // Update the scene
     var cursors = this.input.keyboard.createCursorKeys();
-    if (cursors.down.isDown) {
-      this.pointer.y = 467;
-      this.pointer.x = 300;
-    }
-    if (cursors.up.isDown) {
-      this.pointer.y = 407;
-      this.pointer.x = 330;
-      if (Phaser.Input.Keyboard.JustDown(this.enter)){
-        this.scene.start('EasyNormal', {time: this.time});
-      }
-    }
 
     //Press enter to go to next scene
-    if (this.pointer.y == 407 & this.pointer.x == 330) {
+    if (this.pointer.y == 400 & this.pointer.x == 305) {
       if (Phaser.Input.Keyboard.JustDown(this.enter)){
         this.scene.start('EasyNormal', {time: this.time});
-      }
-    }
-    if (this.pointer.y == 467 & this.pointer.x == 300) {
-      if (Phaser.Input.Keyboard.JustDown(this.enter)){
-        this.scene.start('Tutorial', {time: this.time});
       }
     }
   }
