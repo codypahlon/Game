@@ -6,12 +6,6 @@ export default class Level01 extends Phaser.Scene {
 
   init (data) {
     // Initialization code goes here
-    if (data != null) {
-      this.times = data.time;
-    } else {
-      this.times = 0;
-    }
-
   }
 
   preload () {
@@ -321,7 +315,7 @@ export default class Level01 extends Phaser.Scene {
         this.scene.start('Tutorial');
         this.gameOver = true;
       } else {
-      this.scene.start('Level01', {tutorial: true});
+        this.scene.start('Level01', {times: [], gameMode: 'easy'});
       this.gameOver = true;
       }
     }

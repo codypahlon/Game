@@ -10,6 +10,7 @@ export default class Key extends Phaser.Scene {
     this.health = data.health;
     this.beatWizard = data.beatWizard;
     this.timeElapsed = data.timeElapsed;
+    this.gameMode = data.gameMode;
   }
 
   preload () {
@@ -66,6 +67,10 @@ export default class Key extends Phaser.Scene {
       frameHeight: 35,
       frameWidth: 140
     });
+    this.load.spritesheet('easyHeart', './assets/spriteSheets/easyHeart.png', {
+      frameHeight: 35,
+      frameWidth: 420
+    });
     this.load.spritesheet('dragontail', './assets/spriteSheets/dragontail.png', {
       frameHeight: 120,
       frameWidth: 110
@@ -97,6 +102,8 @@ export default class Key extends Phaser.Scene {
   }
 
   create (data) {
+    console.log(this.timeElapsed);
+    console.log(this.times);
     // Declare variables
     this.gameOver = true;
     this.meleeing = false;
@@ -166,7 +173,11 @@ export default class Key extends Phaser.Scene {
     //Place Kraken on map
     this.kraken = this.physics.add.sprite(2000, 900, 'kraken');
     this.kraken.setSize(50, 70);
-    this.kraken.health = 25;
+    if (this.gameMode == 'normal'){
+      this.kraken.health = 25;
+    } else if (this.gameMode == 'easy'){
+      this.kraken.health = 10;
+    }
     this.kraken.setImmovable(true);
 
     // Adding in the fireball
@@ -493,13 +504,21 @@ export default class Key extends Phaser.Scene {
     });
     this.scoreText.setScrollFactor(0);
 
-    //Player health tracker
-    this.heart = this.physics.add.sprite(85, 40, 'heart');
-    this.heart.setGravity(0, -1000);
-    this.heart.setScrollFactor(0, 0);
-    this.player.health = this.health;
-    this.heart.setFrame((1 - (this.player.health / 100)) * 4);
-
+    if (this.gameMode == 'normal'){
+      this.totalHealth = 100;
+      this.heart = this.physics.add.sprite(85, 40, 'heart');
+      this.heart.setGravity(0, -1000);
+      this.heart.setScrollFactor(0, 0);
+      this.player.health = this.health;
+      this.heart.setFrame((1 - (this.player.health / 100)) * 4);
+    } else if (this.gameMode == 'easy'){
+      this.totalHealth = 300;
+      this.heart = this.physics.add.sprite(225, 40, 'easyHeart');
+      this.heart.setGravity(0, -1000);
+      this.heart.setScrollFactor(0, 0);
+      this.player.health = this.health;
+      this.heart.setFrame(Math.round((1 -(this.player.health / 300)) * 12));
+    }
   }
 
   update (time, delta) {
@@ -576,19 +595,8 @@ export default class Key extends Phaser.Scene {
 
     //Changing scenes to gameover
     if (!this.gameOver) {
-      if (this.times == 0) {
-        if (this.win){
-          this.times = this.timer.getElapsedSeconds();
-        } else {
-          this.times = 0;
-        }
-      } else {
-        if (this.win){
-          var time = this.timer.getElapsedSeconds();
-          this.times[this.times.length] = time;
-        }
-      }
-      this.scene.start('Key', {times: this.times, score: this.score - 20, hasKey: this.hasKey, fromKey: true, tutorial: false, health: 100});
+      this.timeElapsed = this.timer.getElapsedSeconds() + this.timeElapsed;
+      this.scene.start('Key', {times: this.times, score: this.score - 20, hasKey: this.hasKey, fromKey: true, tutorial: false, health: this.totalHealth, gameMode: this.gameMode, timeElapsed: this.timeElapsed});
       this.gameOver = true;
       return;
     }
@@ -625,7 +633,7 @@ export default class Key extends Phaser.Scene {
 
 backToLevel1(player, door){
   var timeElapsed = this.timeElapsed + this.timer.getElapsedSeconds();
-  this.scene.start('Level01', {times: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false, beatWizard: this.beatWizard, health: this.player.health, timeElapsed: timeElapsed});
+  this.scene.start('Level01', {times: this.times, score: this.score, hasKey: this.hasKey, fromKey: true, tutorial: false, beatWizard: this.beatWizard, health: this.player.health, timeElapsed: timeElapsed, gameMode: this.gameMode});
 }
 
 collectedTheKey(player, key){
@@ -646,7 +654,11 @@ gotHit(spriteA, spriteB){
     spriteA.health -= 25;
   } else {
     spriteA.health -= 25;
-    this.heart.setFrame((1 - (spriteA.health / 100)) * 4);
+    if (this.gameMode == 'normal'){
+      this.heart.setFrame((1 - (spriteA.health / 100)) * 4);
+    } else if (this.gameMode == 'easy'){
+      this.heart.setFrame(Math.round((1 - (spriteA.health / 300)) * 12));
+    }
     if (spriteB.name == 'wizardFireball'){
       spriteB.destroy();
     } else {

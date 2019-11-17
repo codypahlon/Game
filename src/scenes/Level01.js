@@ -7,6 +7,8 @@ export default class Level01 extends Phaser.Scene {
   init (data) {
     // Initialization code goes here
     this.times = data.times;
+    this.gameMode = data.gameMode;
+    this.registry.set('gameMode', this.gameMode);
     if (data != null && !(data.tutorial)) {
       this.hasKey = data.hasKey;
       this.fromKey = data.fromKey;
@@ -65,6 +67,10 @@ export default class Level01 extends Phaser.Scene {
     this.load.spritesheet('beam', './assets/spriteSheets/bluefire.png',{
       frameHeight: 25,
       frameWidth: 16.666
+    });
+    this.load.spritesheet('easyHeart', './assets/spriteSheets/easyHeart.png', {
+      frameHeight: 35,
+      frameWidth: 420
     });
     this.load.spritesheet('heart', './assets/spriteSheets/heart.png', {
       frameHeight: 35,
@@ -266,7 +272,11 @@ export default class Level01 extends Phaser.Scene {
     this.wizard.setImmovable(true);
     this.wizard.body.enable = false;
     this.wizard.name = 'wizard';
-    this.wizard.health = 50;
+    if (this.gameMode == 'normal'){
+      this.wizard.health = 50;
+    } else {
+      this.wizard.health = 15;
+    }
 
 
     // Add in the 3 dwarves
@@ -520,20 +530,38 @@ export default class Level01 extends Phaser.Scene {
     this.scoreText.setScrollFactor(0);
 
     //Player health tracker
-    if (this.health == null){
+    if (this.health == null && this.gameMode == 'normal'){
       this.health = 100;
+    } else if (this.health == null && this.gameMode == 'easy'){
+      this.health = 300;
     }
-    this.heart = this.physics.add.sprite(85, 40, 'heart');
-    this.smallHeart = this.physics.add.sprite(400, 270, 'heart');
-    this.heart.setGravity(0, -1000);
-    this.smallHeart.setGravity(0, -1000);
-    this.player.health = this.health;
-    this.heart.setFrame((1 - (this.player.health / 100)) * 4);
-    this.smallHeart.setFrame((1 - (this.player.health / 100)) * 4);
-    this.heart.setScrollFactor(0, 0);
-    this.smallHeart.setScrollFactor(0, 0);
-    this.smallHeart.setDisplaySize(100, 30);
-    this.smallHeart.setAlpha(0.25);
+
+    if (this.gameMode == 'normal'){
+      this.heart = this.physics.add.sprite(85, 40, 'heart');
+      this.smallHeart = this.physics.add.sprite(400, 270, 'heart');
+      this.heart.setGravity(0, -1000);
+      this.smallHeart.setGravity(0, -1000);
+      this.player.health = this.health;
+      this.heart.setFrame((1 - (this.player.health / 100)) * 4);
+      this.smallHeart.setFrame((1 - (this.player.health / 100)) * 4);
+      this.heart.setScrollFactor(0, 0);
+      this.smallHeart.setScrollFactor(0, 0);
+      this.smallHeart.setDisplaySize(100, 30);
+      this.smallHeart.setAlpha(0.25);
+    } else {
+      this.heart = this.physics.add.sprite(225, 40, 'easyHeart');
+      this.smallHeart = this.physics.add.sprite(400, 270, 'easyHeart');
+      this.heart.setGravity(0, -1000);
+      this.smallHeart.setGravity(0, -1000);
+      this.player.health = this.health;
+      var frame = Math.round((1 - (this.player.health / 300)) * 12)
+      this.heart.setFrame(frame);
+      this.smallHeart.setFrame(frame);
+      this.heart.setScrollFactor(0, 0);
+      this.smallHeart.setScrollFactor(0, 0);
+      this.smallHeart.setDisplaySize(300, 30);
+      this.smallHeart.setAlpha(0.25);
+    };
 
     if (this.beatWizard == true){
       this.wizard.disableBody(true, true);
@@ -652,8 +680,13 @@ export default class Level01 extends Phaser.Scene {
       if (this.timeElapsed == null){
         this.timeElapsed = 0;
       }
+      console.log(this.times);
       this.times.push(this.timer.getElapsedSeconds() + this.timeElapsed);
-      this.scene.start('GameOverScene', {times: this.times, scores: this.score});
+      if (this.beatWizard && this.hasKey){
+        this.scene.start('End', {times: this.times, scores: this.score});
+      } else {
+        this.scene.start('GameOverScene', {times: this.times, scores: this.score, gameMode: this.gameMode});
+      }
       this.gameOver = true;
       return;
     }
@@ -689,7 +722,7 @@ export default class Level01 extends Phaser.Scene {
   }
 
 goToKeyScene (player, door){
-  this.scene.start('Key', {times: this.times, score: this.score, beatWizard: this.beatWizard, health: this.player.health, timeElapsed: this.timer.getElapsedSeconds()});
+  this.scene.start('Key', {times: this.times, score: this.score, beatWizard: this.beatWizard, health: this.player.health, timeElapsed: this.timer.getElapsedSeconds(), gameMode: this.gameMode});
 }
 
 // Checking whether the player was hit
@@ -701,9 +734,14 @@ gotHit(spriteA, spriteB){
     this.win = false;
   } else {
     spriteA.health -= 25;
-    var frame = (1- (spriteA.health / 100)) * 4;
+    if (this.gameMode == 'normal'){
+      var frame = (1- (spriteA.health / 100)) * 4;
+    } else if (this.gameMode == 'easy'){
+      var frame = Math.round((1 - (spriteA.health / 300)) * 12);
+    }
     this.heart.setFrame(frame);
     this.smallHeart.setFrame(frame);
+
     if (spriteB.name == 'wizardFireball'){
       spriteB.destroy();
     } else {

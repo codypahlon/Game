@@ -80,12 +80,12 @@ export default class EasyNormal extends Phaser.Scene {
     //Press enter to go to next scene
     if (this.pointer.y == 407 & this.pointer.x == 330) {
       if (Phaser.Input.Keyboard.JustDown(this.enter)){
-        this.scene.start('Level01', {times: this.times});
+        this.scene.start('Level01', {times: this.times, gameMode: 'easy'});
       }
     }
     if (this.pointer.y == 467 & this.pointer.x == 300) {
       if (Phaser.Input.Keyboard.JustDown(this.enter)){
-        this.scene.start('Level01', {times: this.times});
+        this.scene.start('Level01', {times: this.times, gameMode: 'normal'});
       }
     }
   }

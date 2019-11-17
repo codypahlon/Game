@@ -7,6 +7,7 @@ export default class GameOverScene extends Phaser.Scene {
   init (data) {
     this.times = data.times;
     this.scores = data.scores;
+    this.gameMode = data.gameMode;
   }
 
   preload () {
@@ -50,7 +51,7 @@ export default class GameOverScene extends Phaser.Scene {
     var cursors = this.input.keyboard.createCursorKeys();
 
     if (cursors.left.isDown) {
-      this.scene.start('Level01', {times: this.times, fromKey: false});
+      this.scene.start('Level01', {times: this.times, fromKey: false, gameMode: this.gameMode});
     }
   }
 }

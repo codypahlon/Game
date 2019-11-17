@@ -3,6 +3,11 @@ export default class End extends Phaser.Scene {
   constructor () {
     super('End');
   }
+  
+  init (data) {
+    this.times = data.times;
+    this.scores = data.scores;
+  }
 
   preload () {
     this.load.image('eTiles', './assets/tilesets/endtiles.png');
@@ -22,8 +27,6 @@ export default class End extends Phaser.Scene {
 
   create (data) {
     //Load in Background
-    this.registry.set('times', []);
-    this.registry.set('scores', []);
     const mapend = this.make.tilemap({key: 'mapend'});
     const tileset = mapend.addTilesetImage('endtiles', 'eTiles');
     const sky = mapend.createStaticLayer('Background', tileset, -80, 0);
