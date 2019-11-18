@@ -96,6 +96,9 @@ export default class Level01 extends Phaser.Scene {
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
+
+    //load sounds assets
+    this.load.audio("music", ["assets/sounds/sci-fi_platformer12.ogg", "assets/sounds/sci-fi_platormer12.mp3"]);
   }
 
   create (data) {
@@ -567,6 +570,21 @@ export default class Level01 extends Phaser.Scene {
       this.wizard.disableBody(true, true);
       this.block3.disableBody(true, true);
     }
+
+    //play music
+    this.music = this.sound.add("music");
+
+    var musicConfig = {
+      mute: false,
+      volume: 1,
+      rate: 1,
+      detune: 0,
+      seek: 0,
+      loop: true,
+      delay: 0
+    }
+
+    this.music.play(musicConfig);
 
   }
 
