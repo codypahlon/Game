@@ -250,14 +250,20 @@ export default class Level01 extends Phaser.Scene {
 
     // Add in all of the chests
     this.chest = this.physics.add.sprite(1020, 200, 'chest');
+    this.chest.setDepth(-10);
     this.chest2 = this.physics.add.sprite(3120, 1000, 'chest');
     this.chest2
       .setSize(96, 75)
-      .setDisplaySize(96, 75);
+      .setDisplaySize(96, 75)
+      .setDepth(-10);
     this.chest3 = this.physics.add.sprite(1000, 1200, 'chest');
+    this.chest3.setDepth(-10);
+    this.chest4 = this.physics.add.sprite(8575, 100, 'chest');
+    this.chest4.setDepth(-10);
     this.chest.name = 'chest';
     this.chest2.name = 'chest2';
     this.chest3.name = 'chest3';
+    this.chest4.name = 'chest4';
 
     // Add in both of the vikings
     this.viking = this.physics.add.sprite(1420, 1010, 'viking');
@@ -318,10 +324,11 @@ export default class Level01 extends Phaser.Scene {
     }
 
     // All of the physics between all the sprites
-    this.platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
+    this.platformCollisions = [this.viking, this.viking2, this.player, this.chest, this.chest2, this.chest3, this.chest4, this.wizard, this.dwarf, this.dwarf2, this.dwarf3, this.shieldDwarf, this.bowDwarf, this.bowDwarf2, this.bowDwarf3];
     this.physics.add.overlap(this.player, this.chest, this.checkOverlap, null, this).name = 'chest';
     this.physics.add.overlap(this.player, this.chest2, this.checkOverlap, null, this).name = 'chest2';
     this.physics.add.overlap(this.player, this.chest3, this.checkOverlap, null, this).name = 'chest3';
+    this.physics.add.overlap(this.player, this.chest4, this.checkOverlap, null, this).name = 'chest4';
     this.physics.add.collider(this.platformCollisions, this.platforms);
     this.physics.add.collider(this.player, this.lava, ()=>{
       this.inLava = true;
