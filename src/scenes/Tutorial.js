@@ -75,6 +75,7 @@ export default class Level01 extends Phaser.Scene {
 
     //load sounds assets
     this.load.audio("music", ["assets/sounds/sci-fi_platformer12.ogg", "assets/sounds/sci-fi_platormer12.mp3"]);
+    this.load.audio("coin", ["assets/sounds/coinCollect.ogg", "assets/sounds/coinCollect.mp3"]);
   }
 
   create (data) {
@@ -277,6 +278,7 @@ export default class Level01 extends Phaser.Scene {
 
     //create music
     this.music = this.sound.add("music");
+    this.coinSound = this.sound.add("coin");
 
     var musicConfig = {
       mute: false,
@@ -425,6 +427,7 @@ collectCoins(player, coins) {
       //  Add and update the score
       this.score += 10;
       this.scoreText.setText("Score: " + this.score);
+      this.coinSound.play();
 }
 
 // Checking to see if player won
