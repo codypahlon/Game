@@ -76,6 +76,7 @@ export default class Level01 extends Phaser.Scene {
     //load sounds assets
     this.load.audio("music", ["assets/sounds/sci-fi_platformer12.ogg", "assets/sounds/sci-fi_platormer12.mp3"]);
     this.load.audio("coin", ["assets/sounds/coinCollect.ogg", "assets/sounds/coinCollect.mp3"]);
+    this.load.audio("explode", ["assets/sounds/explosion.ogg", "assets/sounds/explosion.mp3"]);
   }
 
   create (data) {
@@ -279,6 +280,7 @@ export default class Level01 extends Phaser.Scene {
     //create music
     this.music = this.sound.add("music");
     this.coinSound = this.sound.add("coin");
+    this.explodeSound = this.sound.add("explode");
 
     var musicConfig = {
       mute: false,
@@ -538,6 +540,7 @@ hitEnemy (fireball, enemy){
     this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
     this.explosion.setGravity(0, -1000);
     this.explosion.setDisplaySize(50, 50);
+    this.explodeSound.play();
     enemy.disableBody(true, true);
     this.explosion.anims.play('explosion', true);
     this.time.addEvent({

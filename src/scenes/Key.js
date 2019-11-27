@@ -99,6 +99,10 @@ export default class Key extends Phaser.Scene {
     // Declare variables for center of the scene
     this.centerX = this.cameras.main.width / 2;
     this.centerY = this.cameras.main.height / 2;
+
+    //add sound
+    this.load.audio("explode", ["assets/sounds/explosion.ogg", "assets/sounds/explosion.mp3"]);
+    this.load.audio("key", ["assets/sounds/keyCollect.ogg", "assets/sounds/keyCollect.mp3"]);
   }
 
   create (data) {
@@ -519,6 +523,10 @@ export default class Key extends Phaser.Scene {
       this.player.health = this.health;
       this.heart.setFrame(Math.round((1 -(this.player.health / 300)) * 12));
     }
+
+    //add sounds
+    this.explodeSound = this.sound.add("explode");
+    this.keySound = this.sound.add("key");
   }
 
   update (time, delta) {
@@ -640,6 +648,7 @@ collectedTheKey(player, key){
   if (this.krakenBeat == true){
     key.disableBody(true, true);
     this.hasKey = true;
+    this.keySound.play();
   }
 };
 
@@ -855,6 +864,7 @@ hitEnemy (fireball, enemy){
     this.explosion = this.physics.add.sprite(enemy.x, enemy.y, 'explosion');
     this.explosion.setGravity(0, -1000);
     this.explosion.setDisplaySize(50, 50);
+    this.explodeSound.play();
     enemy.disableBody(true, true);
     this.explosion.anims.play('explosion', true);
     this.time.addEvent({
