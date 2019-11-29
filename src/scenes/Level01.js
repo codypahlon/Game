@@ -305,6 +305,7 @@ export default class Level01 extends Phaser.Scene {
     this.shieldDwarf = this.physics.add.sprite(1970, 900, 'dwarfShield');
     this.shieldDwarf.health = 1;
     this.shieldDwarf.name = 'shieldDwarf';
+    this.shieldDwarf.setImmovable(true);
 
     //Add in the bow dwarves
     this.bowDwarf = this.physics.add.sprite(1500, 700, 'dwarfBow');

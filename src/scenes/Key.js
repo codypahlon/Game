@@ -224,8 +224,9 @@ export default class Key extends Phaser.Scene {
     this.dwarf2.name = 'dwarf';
 
     //Add in shield dwarves
-    this.shieldDwarf = this.physics.add.sprite(400, 840, 'dwarfShield');
+    this.shieldDwarf = this.physics.add.sprite(420, 840, 'dwarfShield');
     this.shieldDwarf.health = 1;
+    this.shieldDwarf.setImmovable(true);
     this.shieldDwarf.name = 'shieldDwarf';
 
     //Add in the bow dwarves
