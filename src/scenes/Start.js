@@ -70,7 +70,7 @@ export default class Start extends Phaser.Scene {
       rate: 1,
       detune: 0,
       seek: 0,
-      loop: false,
+      loop: true,
       delay: 0
     }
 
